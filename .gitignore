@@ -8,3 +8,5 @@ addon/doc/en/
 *.pyc
 *.nvda-addon
 .sconsign.dblite
+*.dll
+*.exe
