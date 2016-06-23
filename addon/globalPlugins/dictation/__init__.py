@@ -20,6 +20,7 @@ currentEntry = None
 autoFlushTimer = None
 requestedWSRShowHideEvents = False
 wsrAlternatesPanel = None
+wsrSpellingPanel = None
 wsrPanelHiddenFunction = None
 
 def requestWSRShowHideEvents(fn=None):
@@ -112,6 +113,7 @@ def selectListItem(obj):
 
 IDOK = 1
 IDCANCEL = 2
+IDC_SPELLING_WORD = 6304
 
 class WSRAlternatesPanel(NVDAObject):
 	def script_ok(self, gesture):
@@ -179,6 +181,56 @@ class WSRAlternatesPanel(NVDAObject):
 		'kb:control+end': 'selectLastItem',
 	}
 
+class WSRSpellingPanel(NVDAObject):
+	pollTimer = None
+	previousWord = None
+
+	def _get_word(self):
+		wordWindowHandle = windll.user32.GetDlgItem(self.windowHandle, IDC_SPELLING_WORD)
+		wordObject = getNVDAObjectFromEvent(wordWindowHandle, winUser.OBJID_CLIENT, 0)
+		if controlTypes.STATE_INVISIBLE in wordObject.states:
+			return ""
+		return wordObject.name
+
+	def poll(self, *args, **kwargs):
+		self.pollTimer = None
+		oldWord = self.previousWord or ""
+		newWord = self.word or ""
+		if newWord != oldWord:
+			self.previousWord = newWord
+			if len(newWord) > len(oldWord) and newWord[:len(oldWord)] == oldWord:
+				speech.speakSpelling(newWord[len(oldWord):])
+			elif newWord:
+				speech.speakText(newWord)
+				speech.speakSpelling(newWord)
+			elif oldWord:
+				speech.speakText("cleared")
+		self.schedulePoll()
+
+	def cancelPoll(self):
+		if self.pollTimer is not None:
+			self.pollTimer.Stop()
+			self.pollTimer = None
+
+	def schedulePoll(self):
+		self.cancelPoll()
+		self.pollTimer = wx.CallLater(100, self.poll)
+
+	def script_ok(self, gesture):
+		buttonWindowHandle = windll.user32.GetDlgItem(self.windowHandle, IDOK)
+		button = getNVDAObjectFromEvent(buttonWindowHandle, winUser.OBJID_CLIENT, 0)
+		button.doAction()
+
+	def script_cancel(self, gesture):
+		buttonWindowHandle = windll.user32.GetDlgItem(self.windowHandle, IDCANCEL)
+		button = getNVDAObjectFromEvent(buttonWindowHandle, winUser.OBJID_CLIENT, 0)
+		button.doAction()
+
+	__gestures = {
+		'kb:enter': 'ok',
+		'kb:escape': 'cancel',
+	}
+
 def isInWSRAlternatesPanel(obj):
 	while obj is not None:
 		if isinstance(obj, WSRAlternatesPanel):
@@ -195,27 +247,55 @@ class GlobalPlugin(BaseGlobalPlugin):
 	def chooseNVDAObjectOverlayClasses(self, obj, clsList):
 		if obj.windowClassName == '#32770' and obj.name == "Alternates panel":
 			clsList.insert(0, WSRAlternatesPanel)
+		elif obj.windowClassName == '#32770' and obj.name == "Spelling panel":
+			clsList.insert(0, WSRSpellingPanel)
 
 	def event_show(self, obj, nextHandler):
-		global wsrAlternatesPanel
+		global wsrAlternatesPanel, wsrSpellingPanel
 		if isinstance(obj, WSRAlternatesPanel):
 			wsrAlternatesPanel = obj
 			speech.cancelSpeech()
 			speech.speakText(obj.name)
 			for descendant in obj.recursiveDescendants:
+				if controlTypes.STATE_INVISIBLE in descendant.states or controlTypes.STATE_INVISIBLE in descendant.parent.states:
+					continue
 				if descendant.role == controlTypes.ROLE_STATICTEXT:
+					speech.speakText(descendant.name)
+				elif descendant.role == controlTypes.ROLE_LINK:
+					speech.speakText("Or say")
 					speech.speakText(descendant.name)
 				elif descendant.role == controlTypes.ROLE_LISTITEM:
 					speech.speakText(str(descendant.positionInfo["indexInGroup"]))
 					speakWSRAlternatesPanelItem(descendant)
 			return
+		elif isinstance(obj, WSRSpellingPanel):
+			if wsrSpellingPanel is not None:
+				wsrSpellingPanel.cancelPoll()
+			wsrSpellingPanel = obj
+			wsrSpellingPanel.schedulePoll()
+			speech.cancelSpeech()
+			speech.speakText(obj.name)
+			for descendant in obj.recursiveDescendants:
+				if controlTypes.STATE_INVISIBLE in descendant.states or controlTypes.STATE_INVISIBLE in descendant.parent.states:
+					continue
+				if descendant.role == controlTypes.ROLE_STATICTEXT:
+					speech.speakText(descendant.name)
+				elif descendant.role == controlTypes.ROLE_LINK:
+					speech.speakText("Or say")
+					speech.speakText(descendant.name)
+			return
 		nextHandler()
 
 	def wsrPanelHidden(self, windowHandle):
-		global wsrAlternatesPanel
+		global wsrAlternatesPanel, wsrSpellingPanel
 		if wsrAlternatesPanel is not None and windowHandle == wsrAlternatesPanel.windowHandle:
-			speech.speakText("Closed alternates panel")
+			if wsrSpellingPanel is None:
+				speech.speakText("Closed alternates panel")
 			wsrAlternatesPanel = None
+		elif wsrSpellingPanel is not None and windowHandle == wsrSpellingPanel.windowHandle:
+			wsrSpellingPanel.cancelPoll()
+			speech.speakText("Closed spelling panel")
+			wsrSpellingPanel = None
 
 	def event_selection(self, obj, nextHandler):
 		if obj.role == controlTypes.ROLE_LISTITEM and isInWSRAlternatesPanel(obj):
@@ -227,6 +307,10 @@ class GlobalPlugin(BaseGlobalPlugin):
 	def getScript(self, gesture):
 		if wsrAlternatesPanel is not None:
 			result = wsrAlternatesPanel.getScript(gesture)
+			if result is not None:
+				return result
+		elif wsrSpellingPanel is not None:
+			result = wsrSpellingPanel.getScript(gesture)
 			if result is not None:
 				return result
 		return super(GlobalPlugin, self).getScript(gesture)
