@@ -27,7 +27,7 @@ class AppModule(AppModule):
 		if obj.role == controlTypes.ROLE_STATICTEXT and obj.description:
 			obj.description = None
 
-	def script_readTrainingText(self, gesture):
+	def readTrainingText(self):
 		window = api.getForegroundObject()
 		for descendant in window.recursiveDescendants:
 			if not isinstance(descendant, UIA):
@@ -40,12 +40,19 @@ class AppModule(AppModule):
 				speech.speakText(descendant.name)
 				break
 
+	def script_readTrainingText(self, gesture):
+		self.readTrainingText()
+
 	__gestures = {
 		"kb:`": "readTrainingText",
 	}
 
 	def event_nameChange(self, obj, nextHandler):
-		log.info("nameChange %s" % obj.name)
 		if obj.role == controlTypes.ROLE_STATICTEXT and obj.windowClassName == "DirectUIHWND":
-			speech.speakText(obj.name)
+			self.readTrainingText()
+		nextHandler()
+
+	def event_valueChange(self, obj, nextHandler):
+		if obj.role == controlTypes.ROLE_PROGRESSBAR:
+			self.readTrainingText()
 		nextHandler()
