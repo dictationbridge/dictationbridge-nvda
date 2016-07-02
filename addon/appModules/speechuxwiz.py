@@ -24,6 +24,8 @@ class AppModule(AppModule):
 		#When waiting for a second or two on the headset microphone radio button, an unwanted window gains focus.
 		if obj.role == controlTypes.ROLE_WINDOW and isinstance(obj, UIA) and obj.UIAElement.cachedClassName == u'CCRadioButton':
 			obj.shouldAllowUIAFocusEvent = False
+		if obj.role == controlTypes.ROLE_STATICTEXT and obj.description:
+			obj.description = None
 
 	def script_readTrainingText(self, gesture):
 		window = api.getForegroundObject()
