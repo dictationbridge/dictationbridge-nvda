@@ -65,6 +65,9 @@ def textInsertedCallback(hwnd, start, text):
 		prevStart, prevText = currentEntry
 		if start < prevStart or start > (prevStart + len(prevText)):
 			flushCurrentEntry()
+	if start == -1:
+		speech.speakText(text)
+		return
 	if currentEntry is not None:
 		prevStart, prevText = currentEntry
 		currentEntry = (prevStart, prevText[:start - prevStart] + text)
