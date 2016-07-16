@@ -37,6 +37,7 @@ class AppModule(AppModule):
 			except:
 				continue
 			if automationID == "txttrain":
+				api.setNavigatorObject(descendant)
 				speech.speakText(descendant.name)
 				break
 
