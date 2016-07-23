@@ -87,7 +87,7 @@ masterDLL = None
 def initialize():
 	global masterDLL
 	addonRootDir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-	dllPath = os.path.join(addonRootDir, "DictationBridgeMaster.dll")
+	dllPath = os.path.join(addonRootDir, "DictationBridgeMaster32.dll")
 	masterDLL = windll.LoadLibrary(dllPath)
 	masterDLL.DBMaster_SetTextInsertedCallback(textInsertedCallback)
 	if not masterDLL.DBMaster_Start():
