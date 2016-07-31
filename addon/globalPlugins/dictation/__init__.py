@@ -13,7 +13,9 @@ from globalPluginHandler import GlobalPlugin as BaseGlobalPlugin
 from NVDAObjects.IAccessible import getNVDAObjectFromEvent
 from NVDAObjects import NVDAObject
 import speech
+import time
 import windowUtils
+import winInputHook
 import winUser
 
 currentEntry = None
@@ -58,19 +60,18 @@ def flushCurrentEntry():
 	currentEntry = None
 	requestWSRShowHideEvents()
 
-@WINFUNCTYPE(None, HWND, DWORD, c_wchar_p)
-def textInsertedCallback(hwnd, start, text):
+def textInserted(hwnd, start, text):
 	global currentEntry, autoFlushTimer
 	if currentEntry is not None:
 		prevStart, prevText = currentEntry
-		if start < prevStart or start > (prevStart + len(prevText)):
+		if (not (start == -1 and prevStart == -1)) and (start < prevStart or start > (prevStart + len(prevText))):
 			flushCurrentEntry()
-	if start == -1:
-		speech.speakText(text)
-		return
 	if currentEntry is not None:
 		prevStart, prevText = currentEntry
-		currentEntry = (prevStart, prevText[:start - prevStart] + text)
+		if prevStart == -1 and start == -1:
+			currentEntry = (-1, prevText + text)
+		else:
+			currentEntry = (prevStart, prevText[:start - prevStart] + text)
 	else:
 		currentEntry = (start, text)
 	if autoFlushTimer is not None:
@@ -81,6 +82,17 @@ def textInsertedCallback(hwnd, start, text):
 		autoFlushTimer = None
 		flushCurrentEntry()
 	autoFlushTimer = wx.CallLater(100, autoFlush)
+cTextInsertedCallback = WINFUNCTYPE(None, HWND, DWORD, c_wchar_p)(textInserted)
+
+lastKeyDownTime = None
+
+def patchKeyDownCallback():
+	originalCallback = winInputHook.keyDownCallback
+	def callback(*args, **kwargs):
+		global lastKeyDownTime
+		lastKeyDownTime = time.time()
+		return originalCallback(*args, **kwargs)
+	winInputHook.keyDownCallback = callback
 
 masterDLL = None
 
@@ -89,9 +101,10 @@ def initialize():
 	addonRootDir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 	dllPath = os.path.join(addonRootDir, "DictationBridgeMaster32.dll")
 	masterDLL = windll.LoadLibrary(dllPath)
-	masterDLL.DBMaster_SetTextInsertedCallback(textInsertedCallback)
+	masterDLL.DBMaster_SetTextInsertedCallback(cTextInsertedCallback)
 	if not masterDLL.DBMaster_Start():
 		raise WinError()
+	patchKeyDownCallback()
 
 def terminate():
 	global masterDLL
@@ -317,6 +330,12 @@ class GlobalPlugin(BaseGlobalPlugin):
 			if result is not None:
 				return result
 		return super(GlobalPlugin, self).getScript(gesture)
+
+	def event_typedCharacter(self, obj, nextHandler, ch):
+		if lastKeyDownTime is None or (time.time() - lastKeyDownTime) >= 0.5:
+			textInserted(obj.windowHandle, -1, ch)
+			return
+		nextHandler()
 
 	def terminate(self):
 		super(GlobalPlugin, self).terminate()
