@@ -333,7 +333,8 @@ class GlobalPlugin(BaseGlobalPlugin):
 
 	def event_typedCharacter(self, obj, nextHandler, ch):
 		if lastKeyDownTime is None or (time.time() - lastKeyDownTime) >= 0.5:
-			textInserted(obj.windowHandle, -1, ch)
+			if obj.windowClassName != "ConsoleWindowClass":
+				textInserted(obj.windowHandle, -1, ch)
 			return
 		nextHandler()
 
