@@ -7,6 +7,7 @@ import win32con
 
 import wx
 
+import config
 import controlTypes
 import eventHandler
 import globalCommands
@@ -103,7 +104,7 @@ def execCommand(action):
 	"""take commands from speech-recognition and send them to NVDA
 	The function accepts script names to execute"""
 	for key, funcName in globalCommands.commands._GlobalCommands__gestures.items():
-		if (key.startswith("kb:") or key.startswith("kb(")) and action == funcName:
+		if (key.startswith("kb:") or key.startswith("kb(%s):" % config.conf["keyboard"]["keyboardLayout"])) and action == funcName:
 			inputCore.manager.executeGesture(keyboardHandler.KeyboardInputGesture.fromName(makeKeyName(key)))
 			break
 
