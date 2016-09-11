@@ -84,6 +84,11 @@ def textInserted(hwnd, start, text):
 	autoFlushTimer = wx.CallLater(100, autoFlush)
 cTextInsertedCallback = WINFUNCTYPE(None, HWND, DWORD, c_wchar_p)(textInserted)
 
+def commandCallback(command):
+	# TODO: actually handle screen reader commands
+	speech.speakText("DB command: %s" % command)
+cCommandCallback = WINFUNCTYPE(None, c_char_p)(commandCallback)
+
 lastKeyDownTime = None
 
 def patchKeyDownCallback():
@@ -102,6 +107,7 @@ def initialize():
 	dllPath = os.path.join(addonRootDir, "DictationBridgeMaster32.dll")
 	masterDLL = windll.LoadLibrary(dllPath)
 	masterDLL.DBMaster_SetTextInsertedCallback(cTextInsertedCallback)
+	masterDLL.DBMaster_SetCommandCallback(cCommandCallback)
 	if not masterDLL.DBMaster_Start():
 		raise WinError()
 	patchKeyDownCallback()
