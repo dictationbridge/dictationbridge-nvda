@@ -9,7 +9,10 @@ import wx
 
 import controlTypes
 import eventHandler
+import globalCommands
 from globalPluginHandler import GlobalPlugin as BaseGlobalPlugin
+import inputCore
+import keyboardHandler
 from NVDAObjects.IAccessible import getNVDAObjectFromEvent
 from NVDAObjects import NVDAObject
 import speech
@@ -84,9 +87,38 @@ def textInserted(hwnd, start, text):
 	autoFlushTimer = wx.CallLater(100, autoFlush)
 cTextInsertedCallback = WINFUNCTYPE(None, HWND, DWORD, c_wchar_p)(textInserted)
 
+def makeKeyName(knm):
+	"Function to process key names for sending to executeGesture"
+	colonSplit=knm.split(":")
+	tk=colonSplit[1]
+	nvm="insert"
+	if(tk.startswith("NVDA")):
+		tKey=tk.replace("NVDA",nvm)
+	else:
+		tKey=tk
+
+	return tKey
+
+def execCommand(action):
+	"""take commands from speech-recognition and send them to NVDA
+	The function accepts script names to execute"""
+	for key, funcName in globalCommands.commands._GlobalCommands__gestures.items():
+		if (key.startswith("kb:") or key.startswith("kb(")) and action == funcName:
+			inputCore.manager.executeGesture(keyboardHandler.KeyboardInputGesture.fromName(makeKeyName(key)))
+			break
+
+DBCommandsToNVDAScriptNames = dict(
+    SpeakLine = "reportCurrentLine",
+    SpeakWindowTitle = "title",
+    SpeakWindowText = "speakForeground",
+    SpeakFormatting = "reportFormatting",
+)
+
 def commandCallback(command):
-	# TODO: actually handle screen reader commands
-	speech.speakText("DB command: %s" % command)
+	scriptName = DBCommandsToNVDAScriptNames.get(command)
+	if scriptName is None:
+		return
+	execCommand(scriptName)
 cCommandCallback = WINFUNCTYPE(None, c_char_p)(commandCallback)
 
 lastKeyDownTime = None
