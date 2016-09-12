@@ -1,0 +1,3 @@
+[submodule "dictationbridge-core"]
+	path = dictationbridge-core
+	url = http://github.com/dictationbridge/dictationbridge-core

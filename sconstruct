@@ -51,8 +51,9 @@ def mdTool(env):
 	)
 	env['BUILDERS']['markdown']=mdBuilder
 
+vars = Variables()
+env = Environment(variables = vars, ENV=os.environ, tools=['gettexttool', mdTool])
 
-env = Environment(ENV=os.environ, tools=['gettexttool', mdTool])
 env.Append(**buildVars.addon_info)
 
 addonFile = env.File("${addon_name}-${addon_version}.nvda-addon")
@@ -170,3 +171,9 @@ manifest = env.NVDAManifest(os.path.join("addon", "manifest.ini"), os.path.join(
 
 env.Depends(addon, manifest)
 env.Default(addon)
+
+#Build and depend on the Dictationbridge core.
+dbCore = SConscript(['dictationbridge-core/SConstruct'])
+dependencies = dbCore[0]+dbCore[1]
+
+env.Depends(addon, dependencies)
