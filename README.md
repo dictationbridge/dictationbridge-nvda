@@ -1,5 +1,19 @@
 # DictationBridge NVDA add-on
 
-This repository contains the Python code for the DictatioNBridge NVDA add-on. The source for the screen-reader-agnostic core code is not yet publicly available, and when it is, it will be in a separate repository.
+This is the NVDA add-on package for DictationBridge. It depends on the [screen-reader-independent core](https://github.com/dictationbridge/dictationbridge-core).
 
-This project is still very early in its development. You won't be able to build and use the add-on until we release the source code for the core sometime after the conclusion of the crowdfunding campaign.
+Support for Dragon NaturallySpeaking is still under heavy development.
+
+## Building
+
+To build the add-on, you need Python 2.7, a recent version of SCons, and Visual Studio 2015.
+
+First, fetch Git submodules with this command:
+
+    git submodule update --init --recursive
+
+Then simply run SCons.
+
+## Copyright and license
+
+Copyright 2016 3 Mouse Technology, LLC. This software is provided under the GNU General Public License, version 2.
