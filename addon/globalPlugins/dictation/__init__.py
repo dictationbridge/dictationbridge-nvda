@@ -108,18 +108,8 @@ def execCommand(action):
 			inputCore.manager.executeGesture(keyboardHandler.KeyboardInputGesture.fromName(makeKeyName(key)))
 			break
 
-DBCommandsToNVDAScriptNames = dict(
-    SpeakLine = "reportCurrentLine",
-    SpeakWindowTitle = "title",
-    SpeakWindowText = "speakForeground",
-    SpeakFormatting = "reportFormatting",
-)
-
 def commandCallback(command):
-	scriptName = DBCommandsToNVDAScriptNames.get(command)
-	if scriptName is None:
-		return
-	execCommand(scriptName)
+	execCommand(command)
 cCommandCallback = WINFUNCTYPE(None, c_char_p)(commandCallback)
 
 lastKeyDownTime = None
