@@ -10,3 +10,6 @@ addon/doc/en/
 .sconsign.dblite
 *.dll
 *.exe
+*.pdb
+*.lib
+*.exp
