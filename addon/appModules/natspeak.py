@@ -11,30 +11,25 @@ import winUser
 import time
 
 class AppModule(AppModule):
-	lastFlashRightText = None
+	lastMicText = None
 
-	def flashRightTextChanged(self, obj):
-		text = obj.name
-		if not text:
+	def handleMicText(self, text):
+		if text == self.lastMicText:
 			return
-		if self.lastFlashRightText == text:
-			return
-		self.lastFlashRightText = text
 		mOff="Dragon\'s microphone is off;"
 		mOn="Normal mode: You can dictate and use voice"
 		mSleep="The microphone is asleep;"
 		if mOn in text:
+			self.lastMicText = text
 			speech.speakText("Dragon mic on")
 		elif mOff in text:
+			self.lastMicText = text
 			speech.speakText("Dragon mic off")
 		elif mSleep in text:
+			self.lastMicText = text
 			speech.speakText("Dragon sleeping")
 
 	def event_nameChange(self, obj, nextHandler):
-		try:
-			automationId = obj.UIAElement.currentAutomationID
-		except:
-			automationId = None
-		if automationId == "txtFlashRight":
-			self.flashRightTextChanged(obj)
+		text = obj.name or ""
+		self.handleMicText(text)
 		nextHandler()
