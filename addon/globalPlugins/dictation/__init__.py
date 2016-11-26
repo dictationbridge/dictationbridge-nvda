@@ -88,6 +88,10 @@ def textInserted(hwnd, start, text):
 	autoFlushTimer = wx.CallLater(100, autoFlush)
 cTextInsertedCallback = WINFUNCTYPE(None, HWND, DWORD, c_wchar_p)(textInserted)
 
+def textDeleted(hwnd, start, text):
+	speech.speakText("deleted %s" % text)
+cTextDeletedCallback = WINFUNCTYPE(None, HWND, DWORD, c_wchar_p)(textDeleted)
+
 def makeKeyName(knm):
 	"Function to process key names for sending to executeGesture"
 	colonSplit=knm.split(":")
@@ -130,6 +134,7 @@ def initialize():
 	dllPath = os.path.join(addonRootDir, "DictationBridgeMaster32.dll")
 	masterDLL = windll.LoadLibrary(dllPath)
 	masterDLL.DBMaster_SetTextInsertedCallback(cTextInsertedCallback)
+	masterDLL.DBMaster_SetTextDeletedCallback(cTextDeletedCallback)
 	masterDLL.DBMaster_SetCommandCallback(cCommandCallback)
 	if not masterDLL.DBMaster_Start():
 		raise WinError()
