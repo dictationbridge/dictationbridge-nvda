@@ -46,4 +46,3 @@ class AppModule(AppModule):
 			obj.name = obj.previous.name
 		if self.RE_BAD_MENU_ITEMS.match(automationId):
 			obj.role = controlTypes.ROLE_MENU
-			obj.states.add(controlTypes.STATE_COLLAPSED)
