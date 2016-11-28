@@ -1,14 +1,7 @@
 from appModuleHandler import AppModule
-import api
 import controlTypes
-import tones
-import ui
-import windowUtils
-from NVDAObjects.UIA import UIA
-import NVDAObjects
 import speech
-import winUser
-import time
+import re
 
 class AppModule(AppModule):
 	lastFlashRightText = None
@@ -38,3 +31,19 @@ class AppModule(AppModule):
 		if automationId == "txtFlashRight":
 			self.flashRightTextChanged(obj)
 		nextHandler()
+
+	RE_BAD_MENU_ITEMS= re.compile(r"^mi_?("+"|".join([
+		"Top",
+		"Profile",
+		"Tools",
+		"Vocabulary",
+		"Audio",
+		"Help",
+		])+")$")
+	def event_NVDAObject_init(self, obj):
+		automationId = obj.UIAElement.CachedAutomationID
+		if automationId == u'cbRecognitionMode':
+			obj.name = obj.previous.name
+		if self.RE_BAD_MENU_ITEMS.match(automationId):
+			obj.role = controlTypes.ROLE_MENU
+			obj.states.add(controlTypes.STATE_COLLAPSED)
