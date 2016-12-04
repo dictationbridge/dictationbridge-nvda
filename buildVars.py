@@ -19,7 +19,7 @@ addon_info = {
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
 	"addon_description" : _("""Add-on to support Windows Speech Recognition and Dragon NaturallySpeaking"""),
 	# version
-	"addon_version" : "0.3.11",
+	"addon_version" : "0.3.12",
 	# Author(s)
 	"addon_author" : u"The DictationBridge Team <http://dictationbridge.com/>",
 	# URL for the add-on documentation support
