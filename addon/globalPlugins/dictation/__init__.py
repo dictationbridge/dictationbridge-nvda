@@ -14,6 +14,7 @@ import globalCommands
 from globalPluginHandler import GlobalPlugin as BaseGlobalPlugin
 import inputCore
 import keyboardHandler
+from logHandler import log
 from NVDAObjects.IAccessible import getNVDAObjectFromEvent
 from NVDAObjects import NVDAObject
 import speech
@@ -60,7 +61,17 @@ def flushCurrentEntry():
 		autoFlushTimer.Stop()
 		autoFlushTimer = None
 	start, text = currentEntry
-	speech.speakText(text)
+	text = text.replace("\r\n", "\n")
+	text = text.replace("\r", "\n")
+	log.info("text %r" % text)
+	if text == "\n":
+		speech.speakText("new line")
+	elif text == "\n\n":
+		speech.speakText("new paragraph")
+	elif text == "": # new paragraph from Dragon in Word
+		speech.speakText("new paragraph")
+	else:
+		speech.speakText(text)
 	currentEntry = None
 	requestWSRShowHideEvents()
 
