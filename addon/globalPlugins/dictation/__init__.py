@@ -377,7 +377,7 @@ class GlobalPlugin(BaseGlobalPlugin):
 		return super(GlobalPlugin, self).getScript(gesture)
 
 	def event_typedCharacter(self, obj, nextHandler, ch):
-		if lastKeyDownTime is None or (time.time() - lastKeyDownTime) >= 0.5:
+		if lastKeyDownTime is None or (time.time() - lastKeyDownTime) >= 0.5 and ch != "":
 			if obj.windowClassName != "ConsoleWindowClass":
 				textInserted(obj.windowHandle, -1, ch)
 			return
