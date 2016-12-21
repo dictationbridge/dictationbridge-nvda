@@ -1,9 +1,13 @@
 from appModuleHandler import AppModule
 from NVDAObjects.behaviors import ProgressBar
+from NVDAObjects import NVDAObject
 from logHandler import log
 import api
+from weakref import ref
 import controlTypes
 import speech
+
+#scriptCategory = db_con.SCRCAT_DB
 
 class AppModule(AppModule):
 	lastMicText = None
@@ -25,8 +29,9 @@ class AppModule(AppModule):
 			speech.speakText("Dragon sleeping")
 
 	def event_nameChange(self, obj, nextHandler):
-		text = obj.name or ""
-		self.handleMicText(text)
+		if obj.windowClassName == u'ToolbarWindow32':
+			text = obj.name or ""
+			self.handleMicText(text)
 		nextHandler()
 
 	def chooseNVDAObjectOverlayClasses (self, obj, clsList):
@@ -34,10 +39,11 @@ class AppModule(AppModule):
 		#This is potentially annoying, as the user is trying to speak, and hearing progress bars is distracting.
 		try:
 			if obj.windowClassName == u'msctls_progress32' and (
-				(	obj.parent.parent.role == controlTypes.ROLE_LIST) or 
+				(obj.parent.parent.role == controlTypes.ROLE_LIST) or 
 				(obj.windowControlID == 1148)
 				):
 				clsList.remove(ProgressBar)
+				clsList.insert(0, ProgressBarValueCacher)
 		except ValueError:
 			pass
 
@@ -45,7 +51,26 @@ class AppModule(AppModule):
 		if obj.role == controlTypes.ROLE_BUTTON and obj.name == "" and obj.windowClassName == u'Button':
 			#Turnary statements aren't used because it'll break translation.
 			if obj.windowControlID == 202:
+				#Translators: Button title for the dictation box settings.
 				obj.name = _("Dictation Box Settings")
 			elif obj.windowControlID == 9:
+				#Translators: The Dictation boxes help button label.
 				obj.name = _("Help")
-	
+		elif obj.windowClassName == u'Button' and obj.windowControlID == 12324:
+			#Set focus to the next button to make life easier and because we want them to not mess the mic up after pressing around to find it.
+			obj.setFocus()
+
+	def script_queryMic(self, gesture):
+	obj = api.getForegroundObject()
+	if obj.windowClassName == u'#32770' and obj.role == controlTypes.ROLE_DIALOG:
+		#Probably the microphone wizard. Try to query the Mic
+
+		if self.lastProgValue:
+			ui.message(self.lastProgValue)
+		else:
+			#Translators: There is no microphone tuning in progress.
+			ui.message(_("No microphone tuning in progress"))
+
+	__gestures = {
+		"kb:nvda+shift+q" : "queryMic",
+	}
