@@ -33,6 +33,8 @@ class AppModule(AppModule):
 		if obj.windowControlID == 61923 and obj.windowClassName == u"Static":
 			text = obj.name or ""
 			self.handleMicText(text)
+		elif obj.windowClassName == u"DgnResultsBoxWindow" and obj.windowControlID == 0 and obj.name:
+			speech.speakMessage(obj.name)
 		nextHandler()
 
 	def chooseNVDAObjectOverlayClasses (self, obj, clsList):
