@@ -19,7 +19,7 @@ addon_info = {
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
 	"addon_description" : _("""Add-on to support Windows Speech Recognition and Dragon NaturallySpeaking"""),
 	# version
-	"addon_version" : "0.3.17",
+	"addon_version" : "0.3.18",
 	# Author(s)
 	"addon_author" : u"The DictationBridge Team <http://dictationbridge.com/>",
 	# URL for the add-on documentation support
@@ -33,7 +33,11 @@ import os.path
 
 # Define the python files that are the sources of your add-on.
 # You can use glob expressions here, they will be expanded.
-pythonSources = ['addon/**/*.py']
+pythonSources = []
+for dirpath, dirnames, filenames in os.walk("addon"):
+	for fi in filenames:
+		if fi.endswith(".py"):
+			pythonSources.append(os.path.join(dirpath, fi))
 
 # Files that contain strings for translation. Usually your python sources
 i18nSources = pythonSources + ["buildVars.py"]
