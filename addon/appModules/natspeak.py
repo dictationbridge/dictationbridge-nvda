@@ -7,7 +7,6 @@ from weakref import ref
 import controlTypes
 import speech
 
-#scriptCategory = db_con.SCRCAT_DB
 
 class AppModule(AppModule):
 	lastMicText = None
@@ -29,7 +28,7 @@ class AppModule(AppModule):
 			speech.speakText("Dragon sleeping")
 
 	def event_nameChange(self, obj, nextHandler):
-		if obj.windowClassName == u'ToolbarWindow32':
+		if obj.windowControlID == 61923 and obj.windowClassName == u"Static":
 			text = obj.name or ""
 			self.handleMicText(text)
 		nextHandler()
@@ -43,7 +42,6 @@ class AppModule(AppModule):
 				(obj.windowControlID == 1148)
 				):
 				clsList.remove(ProgressBar)
-				clsList.insert(0, ProgressBarValueCacher)
 		except ValueError:
 			pass
 
@@ -56,21 +54,3 @@ class AppModule(AppModule):
 			elif obj.windowControlID == 9:
 				#Translators: The Dictation boxes help button label.
 				obj.name = _("Help")
-		elif obj.windowClassName == u'Button' and obj.windowControlID == 12324:
-			#Set focus to the next button to make life easier and because we want them to not mess the mic up after pressing around to find it.
-			obj.setFocus()
-
-	def script_queryMic(self, gesture):
-	obj = api.getForegroundObject()
-	if obj.windowClassName == u'#32770' and obj.role == controlTypes.ROLE_DIALOG:
-		#Probably the microphone wizard. Try to query the Mic
-
-		if self.lastProgValue:
-			ui.message(self.lastProgValue)
-		else:
-			#Translators: There is no microphone tuning in progress.
-			ui.message(_("No microphone tuning in progress"))
-
-	__gestures = {
-		"kb:nvda+shift+q" : "queryMic",
-	}
