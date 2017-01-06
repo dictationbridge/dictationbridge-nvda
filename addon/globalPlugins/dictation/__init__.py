@@ -1,11 +1,13 @@
 from ctypes import *
 from ctypes.wintypes import *
 import os
+import subprocess
 from win32api import *
 from win32con import *
 import win32con
 
 import wx
+import gui
 
 import config
 import controlTypes
@@ -22,6 +24,7 @@ import time
 import windowUtils
 import winInputHook
 import winUser
+import core
 
 currentEntry = None
 autoFlushTimer = None
@@ -29,6 +32,62 @@ requestedWSRShowHideEvents = False
 wsrAlternatesPanel = None
 wsrSpellingPanel = None
 wsrPanelHiddenFunction = None
+
+def _onInstallDragonCommands():
+	#Translators: Warning about having custom commands already.
+	goAhead = gui.messageBox(_("If you are on a computer with shared commands, and you have multiple users using these commands, this will override them. Please do not proceed unless you are sure you aren't sharing commands over a network. if you are, please read \"Importing Commands Into a Shared System\" in the Dictation Bridge documentation for manual steps.\nDo you want to proceed?"),
+		#Translators: Warning dialog title.
+		_("Warning: Potentially Dangerous Opperation Will be Performed"),
+		wx.YES|wx.NO)
+	if goAhead==wx.NO:
+		return
+	si = subprocess.STARTUPINFO()
+	si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+	si.wShowWindow = subprocess.SW_HIDE
+	dragonDir = r"C:\Program Files (x86)\Nuance\NaturallySpeaking15\Program"
+	#Translators: Title of an error dialog shown in dictation bridge.
+	DB_ERROR_TITLE = _("Dictation Bridge Error")
+	if not os.path.exists(dragonDir):
+		dragonDir.replace(r" (x86)", "")
+	if not os.path.exists(dragonDir):
+		#Translators: Message given to the user when the addon can't find an installed copy of dragon.
+		gui.messageBox(_("Cannot find dragon installed on your machine. Please install dragon and then try this process again."),
+			DB_ERROR_TITLE)
+		return
+	xml2dat = os.path.join(dragonDir, "mycmdsxml2dat.exe")
+	nsadmin = os.path.join(dragonDir, "nsadmin.exe")
+	addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+	if os.path.exists(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat")):
+			os.remove(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat"))
+	try:
+		subprocess.check_call([
+			xml2dat,
+			os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat"),
+			os.path.join(addonRootDir, "dragon_dictationBridgeCommands.xml"),
+			"-v",
+			], startupinfo=si)
+		#Fixme: might need to get the users language, and put them there for non-english locales.
+		d=config.execElevated(nsadmin,
+			["/commands", os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat"), "/overwrite=yes"],
+			wait=True, handleAlreadyElevated=True)
+		print "blah"+str(d)
+		#Translators: Message shown if the commands were installed into dragon successfully.
+		gui.messageBox(_("The dragon commands were successfully installed. Please restart your dragon profile to proceed. See the manual for details on how to do this."),
+			#Translators: Title of the successfully installed commands dialog
+			_("Success!"))
+	except:
+		#Translators: Message shown if dragon commands failed to install.
+		gui.messageBox(_("There was an error while performing the addition of dragon commands into dragon. Are you running as an administrator? If so, please send the error in your log to the dictation bridge team as a bug report."),
+			DB_ERROR_TITLE)
+		raise
+	finally:
+		if os.path.exists(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat")):
+			os.remove(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat"))
+		else:
+			print "baaaaaaaaaaaaaaaaaaaaaaaaa ", os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat")
+
+def onInstallDragonCommands(evt):
+	core.callLater(100, _onInstallDragonCommands)
 
 def requestWSRShowHideEvents(fn=None):
 	global requestedWSRShowHideEvents, hookId, eventCallback, wsrPanelHiddenFunction
@@ -138,9 +197,10 @@ def patchKeyDownCallback():
 	winInputHook.keyDownCallback = callback
 
 masterDLL = None
+installDragonItem = None
 
 def initialize():
-	global masterDLL
+	global masterDLL, installDragonItem
 	addonRootDir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 	dllPath = os.path.join(addonRootDir, "DictationBridgeMaster32.dll")
 	masterDLL = windll.LoadLibrary(dllPath)
@@ -150,12 +210,22 @@ def initialize():
 	if not masterDLL.DBMaster_Start():
 		raise WinError()
 	patchKeyDownCallback()
+	toolsMenu = gui.mainFrame.sysTrayIcon.toolsMenu
+	#Translators: The Install dragon Commands for NVDA tools menu label.
+	installDragonItem= toolsMenu.Append(wx.ID_ANY, _("Install Dragon Commands"))
+	toolsMenu.Parent.Bind(wx.EVT_MENU, onInstallDragonCommands, installDragonItem)
+
 
 def terminate():
 	global masterDLL
 	if masterDLL is not None:
 		masterDLL.DBMaster_Stop()
 		masterDLL = None
+	try:
+		gui.mainFrame.sysTrayIcon.toolsMenu.RemoveItem(installDragonItem)
+	except wx.PyDeadObjectError:
+		pass
+
 
 def getCleanedWSRAlternatesPanelItemName(obj):
 	return obj.name[2:] # strip symbol 2776 and space
