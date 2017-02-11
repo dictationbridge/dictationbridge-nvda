@@ -1,0 +1,11 @@
+env = Environment(HOST_ARCH = 'x86')
+
+env.Append(CXXFLAGS=['/EHsc'])
+
+msr_util = env.Program('msr_util', 'msr_util.cpp',
+	LIBS = 'DictationBridgeClient32',
+	LIBPATH = '../dictationbridge-core/build/x86/client',
+    #LINKFLAGS = "/SUBSYSTEM:WINDOWS",
+)
+
+Return(['msr_util'])
