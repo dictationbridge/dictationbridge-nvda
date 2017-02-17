@@ -1,3 +1,7 @@
+# DictationBridge/__init__.py
+# Part of DictationBridge
+# Copyright 2016-2017 Pranav Lal, Derek Riemer, Joseph Lee and others, released under GPL
+
 from ctypes import *
 from ctypes.wintypes import *
 import os
@@ -5,6 +9,7 @@ import subprocess
 from win32api import *
 from win32con import *
 import win32con
+import _winreg
 
 import wx
 import gui
@@ -33,6 +38,37 @@ wsrAlternatesPanel = None
 wsrSpellingPanel = None
 wsrPanelHiddenFunction = None
 
+def getDragonInstallPath(version=None):
+	"""Returns the possible installation path for Dragon Naturally Speaking.
+	Passing in None results in the latest version being retrieved.
+	"""
+	# we're confident that probing the Registry will let us know what's up.
+	# This also allows multiple versions of Dragon to be found.
+	try:
+		dragonKey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, "Software\Nuance")
+	except WindowsError:
+		raise LookupError("Cannot locate Nuance software on the registry")
+	subkeyCount = _winreg.QueryInfoKey(dragonKey)[0]
+	possibleVersions = []
+	if version is not None:
+		possiblePath = "".join(["NaturallySpeaking", version])
+	for index in xrange(subkeyCount):
+		possibleVersion = _winreg.EnumKey(dragonKey, index)
+		if possibleVersion.startswith("NaturallySpeaking"):
+			# Optimization: bypass append step if the desired version is found.
+			if version is not None and possibleVersion == possiblePath:
+				possibleVersions.insert(0, possibleVersion)
+				break
+			possibleVersions.append(possibleVersion)
+	# Registry probe fails.
+	if not possibleVersions:
+		raise LookupError("Cannot find Dragon subkey from the registry")
+	pathLookup = 0 if version is not None else -1
+	dragonDir = os.path.join(os.environ["programfiles"], "Nuance", possibleVersions[pathLookup], "Program")
+	if not os.path.exists(dragonDir):
+		raise LookupError("Dragon installation path not found, perhaps not installed or a custom installation path was specified")
+	return dragonDir
+
 def _onInstallDragonCommands():
 	#Translators: Warning about having custom commands already.
 	goAhead = gui.messageBox(_("If you are on a computer with shared commands, and you have multiple users using these commands, this will override them. Please do not proceed unless you are sure you aren't sharing commands over a network. if you are, please read \"Importing Commands Into a Shared System\" in the Dictation Bridge documentation for manual steps.\nDo you want to proceed?"),
@@ -41,19 +77,19 @@ def _onInstallDragonCommands():
 		wx.YES|wx.NO)
 	if goAhead==wx.NO:
 		return
-	si = subprocess.STARTUPINFO()
-	si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-	si.wShowWindow = subprocess.SW_HIDE
-	dragonDir = r"C:\Program Files (x86)\Nuance\NaturallySpeaking15\Program"
 	#Translators: Title of an error dialog shown in dictation bridge.
 	DB_ERROR_TITLE = _("Dictation Bridge Error")
-	if not os.path.exists(dragonDir):
-		dragonDir.replace(r" (x86)", "")
-	if not os.path.exists(dragonDir):
+	# #3 (Dragon installation): is Dragon even installed?
+	try:
+		dragonDir = getDragonInstallPath()
+	except LookupError:
 		#Translators: Message given to the user when the addon can't find an installed copy of dragon.
 		gui.messageBox(_("Cannot find dragon installed on your machine. Please install dragon and then try this process again."),
 			DB_ERROR_TITLE)
 		return
+	si = subprocess.STARTUPINFO()
+	si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+	si.wShowWindow = subprocess.SW_HIDE
 	xml2dat = os.path.join(dragonDir, "mycmdsxml2dat.exe")
 	nsadmin = os.path.join(dragonDir, "nsadmin.exe")
 	addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
