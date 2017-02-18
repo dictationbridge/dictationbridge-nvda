@@ -10,6 +10,7 @@ from win32api import *
 from win32con import *
 import win32con
 import _winreg
+import re
 
 import wx
 import gui
@@ -38,54 +39,65 @@ wsrAlternatesPanel = None
 wsrSpellingPanel = None
 wsrPanelHiddenFunction = None
 
-def getDragonInstallPath(version=None):
-	"""Returns the possible installation path for Dragon Naturally Speaking.
-	Passing in None results in the latest version being retrieved.
-	"""
-	# we're confident that probing the Registry will let us know what's up.
-	# This also allows multiple versions of Dragon to be found.
+dragonVersion = re.compile("NaturallySpeaking(?P<version>.*)")
+
+def getDragonInstallPaths():
 	try:
 		dragonKey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, "Software\Nuance")
 	except WindowsError:
-		raise LookupError("Cannot locate Nuance software on the registry")
+		_winreg.CloseKey(dragonKey)
+		return None
 	subkeyCount = _winreg.QueryInfoKey(dragonKey)[0]
-	possibleVersions = []
-	if version is not None:
-		possiblePath = "".join(["NaturallySpeaking", version])
+	possibleVersions = {}
 	for index in xrange(subkeyCount):
 		possibleVersion = _winreg.EnumKey(dragonKey, index)
-		if possibleVersion.startswith("NaturallySpeaking"):
-			# Optimization: bypass append step if the desired version is found.
-			if version is not None and possibleVersion == possiblePath:
-				possibleVersions.insert(0, possibleVersion)
-				break
-			possibleVersions.append(possibleVersion)
-	# Registry probe fails.
-	if not possibleVersions:
-		raise LookupError("Cannot find Dragon subkey from the registry")
-	pathLookup = 0 if version is not None else -1
-	dragonDir = os.path.join(os.environ["programfiles"], "Nuance", possibleVersions[pathLookup], "Program")
-	if not os.path.exists(dragonDir):
-		raise LookupError("Dragon installation path not found, perhaps not installed or a custom installation path was specified")
-	return dragonDir
+		dragonVersionMatch = dragonVersion.match(possibleVersion)
+		if dragonVersionMatch:
+			dragonDir = os.path.join(os.environ["programfiles"], "Nuance", possibleVersion, "Program")
+			if os.path.exists(dragonDir):
+				possibleVersions[dragonVersionMatch.group("version")] = dragonDir
+	_winreg.CloseKey(dragonKey)
+	return possibleVersions if possibleVersions else None
+
+def getDragonDir(dragonVersions):
+	dragonVersionsDialog = wx.SingleChoiceDialog(gui.mainFrame,
+		# Translators: Message for multiple Dragon versions.
+		_("Select the Dragon version you are using:"),
+		# Translators: Title of the Dragon version choice dialog.
+		_("Select a Dragon version"), choices=sorted(dragonVersions.keys()))
+	gui.mainFrame.prePopup()
+	dragonVersionsDialog.Raise()
+	result = dragonVersionsDialog.ShowModal()
+	gui.mainFrame.postPopup()
+	if result == wx.ID_OK:
+		selectedVersion = dragonVersionsDialog.GetStringSelection()
+		return dragonVersions[selectedVersion]
+	else:
+		return None
 
 def _onInstallDragonCommands():
+	#Translators: Title of an error dialog shown in dictation bridge.
+	DB_ERROR_TITLE = _("Dictation Bridge Error")
+	# #3 (Dragon installation): is Dragon even installed?
+	dragonDir = None
+	dragonVersions = getDragonInstallPaths()
+	if len(dragonVersions) == 0:
+		#Translators: Message given to the user when the addon can't find an installed copy of dragon.
+		gui.messageBox(_("Cannot find dragon installed on your machine. Please install dragon and then try this process again."),
+			DB_ERROR_TITLE)
+		return
+	elif len(dragonVersions) == 1:
+		dragonDir = dragonVersions.values()[0]
+	else:
+		dragonDir = getDragonDir(dragonVersions)
+		if dragonDir is None:
+			return
 	#Translators: Warning about having custom commands already.
 	goAhead = gui.messageBox(_("If you are on a computer with shared commands, and you have multiple users using these commands, this will override them. Please do not proceed unless you are sure you aren't sharing commands over a network. if you are, please read \"Importing Commands Into a Shared System\" in the Dictation Bridge documentation for manual steps.\nDo you want to proceed?"),
 		#Translators: Warning dialog title.
 		_("Warning: Potentially Dangerous Opperation Will be Performed"),
 		wx.YES|wx.NO)
 	if goAhead==wx.NO:
-		return
-	#Translators: Title of an error dialog shown in dictation bridge.
-	DB_ERROR_TITLE = _("Dictation Bridge Error")
-	# #3 (Dragon installation): is Dragon even installed?
-	try:
-		dragonDir = getDragonInstallPath()
-	except LookupError:
-		#Translators: Message given to the user when the addon can't find an installed copy of dragon.
-		gui.messageBox(_("Cannot find dragon installed on your machine. Please install dragon and then try this process again."),
-			DB_ERROR_TITLE)
 		return
 	si = subprocess.STARTUPINFO()
 	si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
