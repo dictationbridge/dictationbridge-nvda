@@ -81,7 +81,7 @@ def _onInstallDragonCommands():
 	# #3 (Dragon installation): is Dragon even installed?
 	dragonDir = None
 	dragonVersions = getDragonInstallPaths()
-	if len(dragonVersions) == 0:
+	if not dragonVersions:
 		#Translators: Message given to the user when the addon can't find an installed copy of dragon.
 		gui.messageBox(_("Cannot find dragon installed on your machine. Please install dragon and then try this process again."),
 			DB_ERROR_TITLE)
