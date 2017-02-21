@@ -1,3 +1,7 @@
+# DictationBridge/__init__.py
+# Part of DictationBridge
+# Copyright 2016-2017 Pranav Lal, Derek Riemer, Joseph Lee and others, released under GPL
+
 from ctypes import *
 from ctypes.wintypes import *
 import os
@@ -5,6 +9,8 @@ import subprocess
 from win32api import *
 from win32con import *
 import win32con
+import _winreg
+import re
 
 import wx
 import gui
@@ -33,7 +39,59 @@ wsrAlternatesPanel = None
 wsrSpellingPanel = None
 wsrPanelHiddenFunction = None
 
+dragonVersion = re.compile("NaturallySpeaking(?P<version>.*)")
+
+def getDragonInstallPaths():
+	try:
+		dragonKey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, "Software\Nuance")
+	except WindowsError:
+		_winreg.CloseKey(dragonKey)
+		return None
+	subkeyCount = _winreg.QueryInfoKey(dragonKey)[0]
+	possibleVersions = {}
+	for index in xrange(subkeyCount):
+		possibleVersion = _winreg.EnumKey(dragonKey, index)
+		dragonVersionMatch = dragonVersion.match(possibleVersion)
+		if dragonVersionMatch:
+			dragonDir = os.path.join(os.environ["programfiles"], "Nuance", possibleVersion, "Program")
+			if os.path.exists(dragonDir):
+				possibleVersions[dragonVersionMatch.group("version")] = dragonDir
+	_winreg.CloseKey(dragonKey)
+	return possibleVersions if possibleVersions else None
+
+def getDragonDir(dragonVersions):
+	dragonVersionsDialog = wx.SingleChoiceDialog(gui.mainFrame,
+		# Translators: Message for multiple Dragon versions.
+		_("Select the Dragon version you are using:"),
+		# Translators: Title of the Dragon version choice dialog.
+		_("Select a Dragon version"), choices=sorted(dragonVersions.keys()))
+	gui.mainFrame.prePopup()
+	dragonVersionsDialog.Raise()
+	result = dragonVersionsDialog.ShowModal()
+	gui.mainFrame.postPopup()
+	if result == wx.ID_OK:
+		selectedVersion = dragonVersionsDialog.GetStringSelection()
+		return dragonVersions[selectedVersion]
+	else:
+		return None
+
 def _onInstallDragonCommands():
+	#Translators: Title of an error dialog shown in dictation bridge.
+	DB_ERROR_TITLE = _("Dictation Bridge Error")
+	# #3 (Dragon installation): is Dragon even installed?
+	dragonDir = None
+	dragonVersions = getDragonInstallPaths()
+	if not dragonVersions:
+		#Translators: Message given to the user when the addon can't find an installed copy of dragon.
+		gui.messageBox(_("Cannot find dragon installed on your machine. Please install dragon and then try this process again."),
+			DB_ERROR_TITLE)
+		return
+	elif len(dragonVersions) == 1:
+		dragonDir = dragonVersions.values()[0]
+	else:
+		dragonDir = getDragonDir(dragonVersions)
+		if dragonDir is None:
+			return
 	#Translators: Warning about having custom commands already.
 	goAhead = gui.messageBox(_("If you are on a computer with shared commands, and you have multiple users using these commands, this will override them. Please do not proceed unless you are sure you aren't sharing commands over a network. if you are, please read \"Importing Commands Into a Shared System\" in the Dictation Bridge documentation for manual steps.\nDo you want to proceed?"),
 		#Translators: Warning dialog title.
@@ -44,16 +102,6 @@ def _onInstallDragonCommands():
 	si = subprocess.STARTUPINFO()
 	si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 	si.wShowWindow = subprocess.SW_HIDE
-	dragonDir = r"C:\Program Files (x86)\Nuance\NaturallySpeaking15\Program"
-	#Translators: Title of an error dialog shown in dictation bridge.
-	DB_ERROR_TITLE = _("Dictation Bridge Error")
-	if not os.path.exists(dragonDir):
-		dragonDir.replace(r" (x86)", "")
-	if not os.path.exists(dragonDir):
-		#Translators: Message given to the user when the addon can't find an installed copy of dragon.
-		gui.messageBox(_("Cannot find dragon installed on your machine. Please install dragon and then try this process again."),
-			DB_ERROR_TITLE)
-		return
 	xml2dat = os.path.join(dragonDir, "mycmdsxml2dat.exe")
 	nsadmin = os.path.join(dragonDir, "nsadmin.exe")
 	addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
