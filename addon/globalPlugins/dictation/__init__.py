@@ -1,6 +1,7 @@
 from ctypes import *
 from ctypes.wintypes import *
 import os
+import threading
 import subprocess
 from win32api import *
 from win32con import *
@@ -12,6 +13,7 @@ import gui
 import config
 import controlTypes
 import eventHandler
+import queueHandler
 import globalCommands
 from globalPluginHandler import GlobalPlugin as BaseGlobalPlugin
 import inputCore
@@ -32,15 +34,12 @@ requestedWSRShowHideEvents = False
 wsrAlternatesPanel = None
 wsrSpellingPanel = None
 wsrPanelHiddenFunction = None
+SPECIAL_COMMANDS = {
+	"stopTalking" : speech.cancelSpeech,
+	"toggleTalking" : speech.pauseSpeech,
+}
 
 def _onInstallDragonCommands():
-	#Translators: Warning about having custom commands already.
-	goAhead = gui.messageBox(_("If you are on a computer with shared commands, and you have multiple users using these commands, this will override them. Please do not proceed unless you are sure you aren't sharing commands over a network. if you are, please read \"Importing Commands Into a Shared System\" in the Dictation Bridge documentation for manual steps.\nDo you want to proceed?"),
-		#Translators: Warning dialog title.
-		_("Warning: Potentially Dangerous Opperation Will be Performed"),
-		wx.YES|wx.NO)
-	if goAhead==wx.NO:
-		return
 	si = subprocess.STARTUPINFO()
 	si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 	si.wShowWindow = subprocess.SW_HIDE
@@ -70,7 +69,6 @@ def _onInstallDragonCommands():
 		d=config.execElevated(nsadmin,
 			["/commands", os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat"), "/overwrite=yes"],
 			wait=True, handleAlreadyElevated=True)
-		print "blah"+str(d)
 		#Translators: Message shown if the commands were installed into dragon successfully.
 		gui.messageBox(_("The dragon commands were successfully installed. Please restart your dragon profile to proceed. See the manual for details on how to do this."),
 			#Translators: Title of the successfully installed commands dialog
@@ -83,11 +81,27 @@ def _onInstallDragonCommands():
 	finally:
 		if os.path.exists(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat")):
 			os.remove(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat"))
-		else:
-			print "baaaaaaaaaaaaaaaaaaaaaaaaa ", os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat")
+
 
 def onInstallDragonCommands(evt):
-	core.callLater(100, _onInstallDragonCommands)
+	#Translators: Warning about having custom commands already.
+	goAhead = gui.messageBox(_("If you are on a computer with shared commands, and you have multiple users using these commands, this will override them. Please do not proceed unless you are sure you aren't sharing commands over a network. if you are, please read \"Importing Commands Into a Shared System\" in the Dictation Bridge documentation for manual steps.\nDo you want to proceed?"),
+		#Translators: Warning dialog title.
+		_("Warning: Potentially Dangerous Opperation Will be Performed"),
+		wx.YES|wx.NO)
+	if goAhead==wx.NO:
+		return
+	dialog = gui.IndeterminateProgressDialog(gui.mainFrame,
+		#Translators: Title for a dialog shown when Dragon  Commands are being installed!
+		_("Dragon Command Installation"),
+		#Translators: Message shown in the progress dialog for dragon command installation.
+		_("Please wait while Dragon commands are installed."))
+	try:
+		gui.ExecAndPump(_onInstallDragonCommands)
+	except: #Catch all, because if this fails, bad bad bad.
+		log.error("DictationBridge commands failed to install!", exc_info=True)
+	finally:
+		dialog.done()
 
 def requestWSRShowHideEvents(fn=None):
 	global requestedWSRShowHideEvents, hookId, eventCallback, wsrPanelHiddenFunction
@@ -180,9 +194,13 @@ def execCommand(action):
 	for key, funcName in globalCommands.commands._GlobalCommands__gestures.items():
 		if (key.startswith("kb:") or key.startswith("kb(%s):" % config.conf["keyboard"]["keyboardLayout"])) and action == funcName:
 			inputCore.manager.executeGesture(keyboardHandler.KeyboardInputGesture.fromName(makeKeyName(key)))
+			print "oh yeah! ", funcName
 			break
 
 def commandCallback(command):
+	if command in SPECIAL_COMMANDS:
+		queueHandler.queueFunction(queueHandler.eventQueue, SPECIAL_COMMANDS[command])
+		return
 	execCommand(command)
 cCommandCallback = WINFUNCTYPE(None, c_char_p)(commandCallback)
 
