@@ -1,11 +1,8 @@
 from appModuleHandler import AppModule
 from NVDAObjects.behaviors import ProgressBar
-from NVDAObjects import NVDAObject
 from logHandler import log
-import api
-from weakref import ref
 import controlTypes
-import speech
+import ui
 
 
 class AppModule(AppModule):
@@ -19,13 +16,13 @@ class AppModule(AppModule):
 		mSleep="The microphone is asleep;"
 		if mOn in text:
 			self.lastMicText = text
-			speech.speakText("Dragon mic on")
+			ui.message("Dragon mic on")
 		elif mOff in text:
 			self.lastMicText = text
-			speech.speakText("Dragon mic off")
+			ui.message("Dragon mic off")
 		elif mSleep in text:
 			self.lastMicText = text
-			speech.speakText("Dragon sleeping")
+			ui.message("Dragon sleeping")
 
 	def event_nameChange(self, obj, nextHandler):
 		if obj.windowControlID == 61923 and obj.windowClassName == u"Static":

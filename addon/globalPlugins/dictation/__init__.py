@@ -22,11 +22,13 @@ from logHandler import log
 from NVDAObjects.IAccessible import getNVDAObjectFromEvent
 from NVDAObjects import NVDAObject
 import speech
+import braille
 import time
 import windowUtils
 import winInputHook
 import winUser
 import core
+import api
 
 currentEntry = None
 autoFlushTimer = None
@@ -145,6 +147,7 @@ def flushCurrentEntry():
 		speech.speakText("new paragraph")
 	else:
 		speech.speakText(text)
+	braille.handler.handleCaretMove(api.getFocusObject())
 	currentEntry = None
 	requestWSRShowHideEvents()
 

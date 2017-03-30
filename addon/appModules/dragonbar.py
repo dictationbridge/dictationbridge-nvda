@@ -1,6 +1,6 @@
 from appModuleHandler import AppModule
 import controlTypes
-import speech
+import ui
 import re
 
 class AppModule(AppModule):
@@ -17,11 +17,11 @@ class AppModule(AppModule):
 		mOn="Normal mode: You can dictate and use voice"
 		mSleep="The microphone is asleep;"
 		if mOn in text:
-			speech.speakText("Dragon mic on")
+			ui.message("Dragon mic on")
 		elif mOff in text:
-			speech.speakText("Dragon mic off")
+			ui.message("Dragon mic off")
 		elif mSleep in text:
-			speech.speakText("Dragon sleeping")
+			ui.message("Dragon sleeping")
 
 	def event_nameChange(self, obj, nextHandler):
 		try:
