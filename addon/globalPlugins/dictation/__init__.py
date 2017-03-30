@@ -138,14 +138,19 @@ def flushCurrentEntry():
 	start, text = currentEntry
 	text = text.replace("\r\n", "\n")
 	text = text.replace("\r", "\n")
-	log.info("text %r" % text)
-	if text == "\n":
-		speech.speakText("new line")
-	elif text == "\n\n":
-		speech.speakText("new paragraph")
-	elif text == "": # new paragraph from Dragon in Word
-		speech.speakText("new paragraph")
-	else:
+	while True:
+		i = text.find("\n")
+		if i == -1:
+			break
+		if i > 0:
+			speech.speakText(text[:i])
+		if text[i:i + 2] == "\n\n":
+			speech.speakText("new paragraph")
+			text = text[i + 2:]
+		else:
+			speech.speakText("new line")
+			text = text[i + 1:]
+	if text != "":
 		speech.speakText(text)
 	braille.handler.handleCaretMove(api.getFocusObject())
 	currentEntry = None
@@ -173,11 +178,11 @@ def textInserted(hwnd, start, text):
 		autoFlushTimer = None
 		flushCurrentEntry()
 	autoFlushTimer = wx.CallLater(100, autoFlush)
-cTextInsertedCallback = WINFUNCTYPE(None, HWND, DWORD, c_wchar_p)(textInserted)
+cTextInsertedCallback = WINFUNCTYPE(None, HWND, LONG, c_wchar_p)(textInserted)
 
 def textDeleted(hwnd, start, text):
 	speech.speakText("deleted %s" % text)
-cTextDeletedCallback = WINFUNCTYPE(None, HWND, DWORD, c_wchar_p)(textDeleted)
+cTextDeletedCallback = WINFUNCTYPE(None, HWND, LONG, c_wchar_p)(textDeleted)
 
 def makeKeyName(knm):
 	"Function to process key names for sending to executeGesture"

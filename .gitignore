@@ -13,3 +13,4 @@ addon/doc/en/
 *.pdb
 *.lib
 *.exp
+*.obj
