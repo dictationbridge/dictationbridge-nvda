@@ -155,6 +155,7 @@ def flushCurrentEntry():
 
 def textInserted(hwnd, start, text):
 	global currentEntry, autoFlushTimer
+	log.debug("textInserted %r" % text)
 	if currentEntry is not None:
 		prevStart, prevText = currentEntry
 		if (not (start == -1 and prevStart == -1)) and (start < prevStart or start > (prevStart + len(prevText))):
@@ -209,6 +210,10 @@ def commandCallback(command):
 	execCommand(command)
 cCommandCallback = WINFUNCTYPE(None, c_char_p)(commandCallback)
 
+def debugLogCallback(msg):
+	log.debug(msg)
+cDebugLogCallback = WINFUNCTYPE(None, c_char_p)(debugLogCallback)
+
 lastKeyDownTime = None
 
 def patchKeyDownCallback():
@@ -230,6 +235,7 @@ def initialize():
 	masterDLL.DBMaster_SetTextInsertedCallback(cTextInsertedCallback)
 	masterDLL.DBMaster_SetTextDeletedCallback(cTextDeletedCallback)
 	masterDLL.DBMaster_SetCommandCallback(cCommandCallback)
+	masterDLL.DBMaster_SetDebugLogCallback(cDebugLogCallback)
 	if not masterDLL.DBMaster_Start():
 		raise WinError()
 	patchKeyDownCallback()
@@ -472,6 +478,7 @@ class GlobalPlugin(BaseGlobalPlugin):
 	def event_typedCharacter(self, obj, nextHandler, ch):
 		if lastKeyDownTime is None or (time.time() - lastKeyDownTime) >= 0.5 and ch != "":
 			if obj.windowClassName != "ConsoleWindowClass":
+				log.debug("typedCharacter %r %r" % (obj.windowClassName, ch))
 				textInserted(obj.windowHandle, -1, ch)
 			return
 		nextHandler()
