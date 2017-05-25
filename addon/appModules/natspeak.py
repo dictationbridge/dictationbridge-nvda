@@ -142,7 +142,6 @@ class AppModule(appModuleHandler.AppModule):
 			pass
 
 	def event_NVDAObject_init(self, obj):
-		log.debug("squirrel")
 		if obj.role == controlTypes.ROLE_BUTTON and obj.name == "" and obj.windowClassName == u'Button':
 			#Turnary statements aren't used because it'll break translation.
 			if obj.windowControlID == 202:
