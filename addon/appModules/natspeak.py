@@ -51,9 +51,10 @@ class CustomList(NVDAObjects.NVDAObject):
 			return
 		base = ""
 		if self._addHeaderNextTime:
-			base = self.columnHeaders[self.columnNumber]
+			base = self.columnHeaders[self.columnNumber] + " "
 			self._addHeaderNextTime= False
 		fields = ti.getTextWithFields()
+		#Second, and last. First is a format field.
 		fields = fields[1], fields[-1]
 		base += fields[self.columnNumber]
 		return base
@@ -65,7 +66,6 @@ class CustomList(NVDAObjects.NVDAObject):
 		eventHandler.executeEvent("valueChange", self)
 
 	def _movementHelper(self, dir):
-		print dir, self.columnNumber
 		if (
 			(dir and self.columnNumber == 1) or
 			(not dir and self.columnNumber==0)):
