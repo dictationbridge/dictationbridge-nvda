@@ -1,0 +1,537 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<speechMacros>
+  <command>
+    <listenFor>show browse mode options</listenFor>
+<run command="msr_util" params="activateBrowseModeDialog"/>
+  </command>
+<command>
+<listenFor>configurations profile options</listenFor>
+<run command="msr_util" params="activateConfigProfilesDialog"/>
+</command>
+<command>
+<listenFor>show general settings</listenFor>
+<run command="msr_util" params="activateGeneralSettingsDialog"/>
+</command>
+  <command>
+    <listenFor>showDocumentFormattingDialog</listenFor>
+<run command="msr_util" params="activateDocumentFormattingDialog"/>
+</command>
+  <command>
+    <listenFor>cycleSpeechSymbolLevel</listenFor>
+<run command="msr_util" params="cycleSpeechSymbolLevel"/>
+</command>
+  <command>
+    <listenFor>quit</listenFor>
+<run command="msr_util" params="quit"/>
+</command>
+  <command>
+    <listenFor>decreaseSynthSetting</listenFor>
+<run command="msr_util" params="decreaseSynthSetting"/>
+</command>
+  <command>
+    <listenFor>title</listenFor>
+<run command="msr_util" params="title"/>
+</command>
+  <command>
+    <listenFor>activate review mode</listenFor>
+<run command="msr_util" params="review_activate"/>
+</command>
+  <command>
+    <listenFor>cycle Right Mouse Button</listenFor>
+<run command="msr_util" params="toggleRightMouseButton"/>
+</command>
+  <command>
+    <listenFor>navigatorObject_devInfo</listenFor>
+<run command="msr_util" params="navigatorObject_devInfo"/>
+</command>
+  <command>
+    <listenFor>Move navigator to focus</listenFor>
+<run command="msr_util" params="navigatorObject_toFocus"/>
+</command>
+  <command>
+    <listenFor>speakForeground</listenFor>
+<run command="msr_util" params="speakForeground"/>
+</command>
+  <command>
+    <listenFor>reportClipboardText</listenFor>
+<run command="msr_util" params="reportClipboardText"/>
+</command>
+  <command>
+    <listenFor>review previous character</listenFor>
+<run command="msr_util" params="review_previousCharacter"/>
+</command>
+  <command>
+    <listenFor>reportFormatting</listenFor>
+<run command="msr_util" params="reportFormatting"/>
+</command>
+  <command>
+    <listenFor>review Previous Line</listenFor>
+<run command="msr_util" params="review_previousLine"/>
+</command>
+  <command>
+    <listenFor>navigatorObject_parent</listenFor>
+<run command="msr_util" params="navigatorObject_parent"/>
+</command>
+  <command>
+    <listenFor>toggleLeftMouseButton</listenFor>
+<run command="msr_util" params="toggleLeftMouseButton"/>
+</command>
+  <command>
+    <listenFor>review cursor to bottom</listenFor>
+<run command="msr_util" params="review_bottom"/>
+</command>
+  <command>
+    <listenFor>review_currentLine</listenFor>
+<run command="msr_util" params="review_currentLine"/>
+</command>
+  <command>
+    <listenFor>speak Battery Status</listenFor>
+<run command="msr_util" params="say_battery_status"/>
+</command>
+  <command>
+    <listenFor>nvda menu</listenFor>
+<run command="msr_util" params="showGui"/>
+</command>
+  <command>
+    <listenFor>reportCurrentLine</listenFor>
+<run command="msr_util" params="reportCurrentLine"/>
+</command>
+  <command>
+    <listenFor>toggleRightMouseButton</listenFor>
+<run command="msr_util" params="toggleRightMouseButton"/>
+</command>
+  <command>
+    <listenFor>reportStatusLine</listenFor>
+<run command="msr_util" params="reportStatusLine"/>
+</command>
+  <command>
+    <listenFor>next synthesizer</listenFor>
+<run command="msr_util" params="nextSynthSetting"/>
+</command>
+  <command>
+    <listenFor>nextSynthSetting</listenFor>
+<run command="msr_util" params="nextSynthSetting"/>
+</command>
+  <command>
+    <listenFor>Cycle synthesiser ducking</listenFor>
+<run command="msr_util" params="cycleAudioDuckingMode"/>
+</command>
+  <command>
+    <listenFor>reviewMode_previous</listenFor>
+<run command="msr_util" params="reviewMode_previous"/>
+</command>
+  <command>
+    <listenFor>speak review character</listenFor>
+<run command="msr_util" params="review_currentCharacter"/>
+</command>
+  <command>
+    <listenFor>right click mouse</listenFor>
+<run command="msr_util" params="rightMouseClick"/>
+</command>
+  <command>
+    <listenFor>move mouse to navigator object</listenFor>
+<run command="msr_util" params="moveMouseToNavigatorObject"/>
+</command>
+  <command>
+    <listenFor>Left click mouse</listenFor>
+<run command="msr_util" params="leftMouseClick"/>
+</command>
+  <command>
+    <listenFor>review previous character</listenFor>
+<run command="msr_util" params="review_previousCharacter"/>
+</command>
+  <command>
+    <listenFor>show Mouse Settings</listenFor>
+<run command="msr_util" params="activateMouseSettingsDialog"/>
+</command>
+  <command>
+    <listenFor>activate review mode</listenFor>
+<run command="msr_util" params="review_activate"/>
+</command>
+  <command>
+    <listenFor>review previous Line</listenFor>
+<run command="msr_util" params="review_previousLine"/>
+</command>
+  <command>
+    <listenFor>cycle speak typed words</listenFor>
+<run command="msr_util" params="toggleSpeakTypedWords"/>
+</command>
+  <command>
+    <listenFor>Cycle keyboard help</listenFor>
+<run command="msr_util" params="toggleInputHelp"/>
+</command>
+  <command>
+    <listenFor>Move navigator to focus</listenFor>
+<run command="msr_util" params="navigatorObject_toFocus"/>
+</command>
+  <command>
+    <listenFor>focus moves navigator object</listenFor>
+<run command="msr_util" params="toggleFocusMovesNavigatorObject"/>
+</command>
+  <command>
+    <listenFor>Show voice</listenFor>
+<run command="msr_util" params="activateVoiceDialog"/>
+</command>
+  <command>
+    <listenFor>cycle report dynamic changes</listenFor>
+<run command="msr_util" params="toggleReportDynamicContentChanges"/>
+</command>
+  <command>
+    <listenFor>What is the time</listenFor>
+<run command="msr_util" params="dateTime"/>
+</command>
+  <command>
+  <listenFor>What is the date</listenFor>
+  <run command="msr_util" params="dateTime"/>
+  <run command="msr_util" params="dateTime"/>
+  </command>
+  <command>
+    <listenFor>Cycle speak command keys</listenFor>
+<run command="msr_util" params="toggleSpeakCommandKeys"/>
+</command>
+  <command>
+    <listenFor>increaseSynthSetting</listenFor>
+<run command="msr_util" params="increaseSynthSetting"/>
+</command>
+  <command>
+    <listenFor>activateBrowseModeDialog</listenFor>
+<run command="msr_util" params="activateBrowseModeDialog"/>
+</command>
+  <command>
+    <listenFor>review_nextCharacter</listenFor>
+<run command="msr_util" params="review_nextCharacter"/>
+</command>
+  <command>
+    <listenFor>reload plugins</listenFor>
+<run command="msr_util" params="reloadPlugins"/>
+</command>
+  <command>
+    <listenFor>show application information</listenFor>
+<run command="msr_util" params="reportAppModuleInfo"/>
+</command>
+  <command>
+    <listenFor>review_currentCharacter</listenFor>
+<run command="msr_util" params="review_currentCharacter"/>
+</command>
+  <command>
+    <listenFor>reportCurrentLine</listenFor>
+<run command="msr_util" params="reportCurrentLine"/>
+</command>
+  <command>
+    <listenFor>speak all</listenFor>
+<run command="msr_util" params="sayAll"/>
+</command>
+  <command>
+    <listenFor>test Navigator Display Model Text</listenFor>
+<run command="msr_util" params="test_navigatorDisplayModelText"/>
+</command>
+  <command>
+    <listenFor>Say current navigator size</listenFor>
+<run command="msr_util" params="navigatorObject_currentDimensions"/>
+</command>
+  <command>
+    <listenFor>speak review word</listenFor>
+<run command="msr_util" params="review_currentWord"/>
+</command>
+  <command>
+    <listenFor>previousSynthSetting</listenFor>
+<run command="msr_util" params="previousSynthSetting"/>
+</command>
+  <command>
+    <listenFor>speak Selected Text</listenFor>
+<run command="msr_util" params="reportCurrentSelection"/>
+</command>
+  <command>
+    <listenFor>Show object presentation</listenFor>
+<run command="msr_util" params="activateObjectPresentationDialog"/>
+</command>
+  <command>
+    <listenFor>toggle Virtual Buffer Pass Through</listenFor>
+<run command="msr_util" params="toggleVirtualBufferPassThrough"/>
+</command>
+  <command>
+    <listenFor>Interact with math</listenFor>
+<run command="msr_util" params="interactWithMath"/>
+</command>
+  <command>
+    <listenFor>review_nextWord</listenFor>
+<run command="msr_util" params="review_nextWord"/>
+</command>
+  <command>
+    <listenFor>Next navigator</listenFor>
+<run command="msr_util" params="navigatorObject_next"/>
+</command>
+  <command>
+    <listenFor>move navigator to mouse</listenFor>
+<run command="msr_util" params="moveNavigatorObjectToMouse"/>
+</command>
+  <command>
+    <listenFor>speak review end of line</listenFor>
+<run command="msr_util" params="review_endOfLine"/>
+</command>
+  <command>
+    <listenFor>decreaseSynthSetting</listenFor>
+<run command="msr_util" params="decreaseSynthSetting"/>
+</command>
+  <command>
+    <listenFor>toggleCurrentAppSleepMode</listenFor>
+<run command="msr_util" params="toggleCurrentAppSleepMode"/>
+</command>
+  <command>
+    <listenFor>activateConfigProfilesDialog</listenFor>
+<run command="msr_util" params="activateConfigProfilesDialog"/>
+</command>
+  <command>
+    <listenFor>activateGeneralSettingsDialog</listenFor>
+<run command="msr_util" params="activateGeneralSettingsDialog"/>
+</command>
+  <command>
+    <listenFor>Previous navigator</listenFor>
+<run command="msr_util" params="navigatorObject_previous"/>
+</command>
+  <command>
+    <listenFor>review Previous Word</listenFor>
+<run command="msr_util" params="review_previousWord"/>
+</command>
+  <command>
+    <listenFor>review_bottom</listenFor>
+<run command="msr_util" params="review_bottom"/>
+</command>
+  <command>
+    <listenFor>save configuration profile</listenFor>
+<run command="msr_util" params="saveConfiguration"/>
+</command>
+  <command>
+    <listenFor>reportCurrentSelection</listenFor>
+<run command="msr_util" params="reportCurrentSelection"/>
+</command>
+  <command>
+    <listenFor>review_top</listenFor>
+<run command="msr_util" params="review_top"/>
+</command>
+  <command>
+    <listenFor>review_currentWord</listenFor>
+<run command="msr_util" params="review_currentWord"/>
+</command>
+  <command>
+    <listenFor>review_startOfLine</listenFor>
+<run command="msr_util" params="review_startOfLine"/>
+</command>
+  <command>
+    <listenFor>review_endOfLine</listenFor>
+<run command="msr_util" params="review_endOfLine"/>
+</command>
+  <command>
+    <listenFor>navigatorObject_currentDimensions</listenFor>
+<run command="msr_util" params="navigatorObject_currentDimensions"/>
+</command>
+  <command>
+    <listenFor>Toggle braille line tethering</listenFor>
+<run command="msr_util" params="braille_toggleTether"/>
+</command>
+  <command>
+    <listenFor>move to parent tree</listenFor>
+<run command="msr_util" params="moveToParentTreeInterceptor"/>
+</command>
+  <command>
+    <listenFor>sayAll</listenFor>
+<run command="msr_util" params="sayAll"/>
+</command>
+  <command>
+    <listenFor>Current navigator</listenFor>
+<run command="msr_util" params="navigatorObject_current"/>
+</command>
+  <command>
+    <listenFor>reset configuration profile</listenFor>
+<run command="msr_util" params="revertConfiguration"/>
+</command>
+  <command>
+    <listenFor>moveMouseToNavigatorObject</listenFor>
+<run command="msr_util" params="moveMouseToNavigatorObject"/>
+</command>
+  <command>
+    <listenFor>toggle Caret Moves Review Cursor</listenFor>
+<run command="msr_util" params="toggleCaretMovesReviewCursor"/>
+</command>
+  <command>
+    <listenFor>review cursor say all</listenFor>
+<run command="msr_util" params="review_sayAll"/>
+</command>
+  <command>
+    <listenFor>review_previousWord</listenFor>
+<run command="msr_util" params="review_previousWord"/>
+</command>
+  <command>
+    <listenFor>activatePythonConsole</listenFor>
+<run command="msr_util" params="activatePythonConsole"/>
+</command>
+  <command>
+    <listenFor>rightMouseClick</listenFor>
+<run command="msr_util" params="rightMouseClick"/>
+</command>
+  <command>
+    <listenFor>review next line</listenFor>
+<run command="msr_util" params="review_nextLine"/>
+</command>
+  <command>
+    <listenFor>begin selection</listenFor>
+<run command="msr_util" params="review_markStartForCopy"/>
+</command>
+  <command>
+    <listenFor>review cursor to start of line</listenFor>
+<run command="msr_util" params="review_startOfLine"/>
+</command>
+  <command>
+    <listenFor>review to top</listenFor>
+<run command="msr_util" params="review_top"/>
+</command>
+  <command>
+    <listenFor>test speech mode</listenFor>
+<run command="msr_util" params="speechMode"/>
+</command>
+  <command>
+    <listenFor>cycle left mouse button</listenFor>
+<run command="msr_util" params="toggleLeftMouseButton"/>
+</command>
+  <command>
+    <listenFor>Send keystroke to program</listenFor>
+<run command="msr_util" params="passNextKeyThrough"/>
+</command>
+  <command>
+    <listenFor>navigatorObject_moveFocus</listenFor>
+<run command="msr_util" params="navigatorObject_moveFocus"/>
+</command>
+  <command>
+    <listenFor>Cycle progress bar</listenFor>
+<run command="msr_util" params="toggleProgressBarOutput"/>
+</command>
+  <command>
+    <listenFor>previousSynthSetting</listenFor>
+<run command="msr_util" params="previousSynthSetting"/>
+</command>
+  <command>
+    <listenFor>copy review text</listenFor>
+<run command="msr_util" params="review_copy"/>
+</command>
+  <command>
+    <listenFor>cycle mouse tracking</listenFor>
+<run command="msr_util" params="toggleMouseTracking"/>
+</command>
+  <command>
+    <listenFor>previous review mode</listenFor>
+<run command="msr_util" params="reviewMode_previous"/>
+</command>
+  <command>
+    <listenFor>Move to 1st child of navigator</listenFor>
+<run command="msr_util" params="navigatorObject_firstChild"/>
+</command>
+  <command>
+    <listenFor>navigatorObject_current</listenFor>
+<run command="msr_util" params="navigatorObject_current"/>
+</command>
+  <command>
+    <listenFor>navigatorObject_previous</listenFor>
+<run command="msr_util" params="navigatorObject_previous"/>
+</command>
+  <command>
+    <listenFor>review_nextLine</listenFor>
+<run command="msr_util" params="review_nextLine"/>
+</command>
+  <command>
+    <listenFor>navigatorObject_next</listenFor>
+<run command="msr_util" params="navigatorObject_next"/>
+</command>
+  <command>
+    <listenFor>increaseSynthSetting</listenFor>
+<run command="msr_util" params="increaseSynthSetting"/>
+</command>
+  <command>
+    <listenFor>Move to parent of Navigator</listenFor>
+<run command="msr_util" params="navigatorObject_parent"/>
+</command>
+  <command>
+    <listenFor>moveNavigatorObjectToMouse</listenFor>
+<run command="msr_util" params="moveNavigatorObjectToMouse"/>
+</command>
+  <command>
+    <listenFor>speak focus</listenFor>
+<run command="msr_util" params="reportCurrentFocus"/>
+</command>
+  <command>
+    <listenFor>review next character</listenFor>
+<run command="msr_util" params="review_nextCharacter"/>
+</command>
+  <command>
+    <listenFor>speak review line</listenFor>
+<run command="msr_util" params="review_currentLine"/>
+</command>
+  <command>
+    <listenFor>navigatorObject_firstChild</listenFor>
+<run command="msr_util" params="navigatorObject_firstChild"/>
+</command>
+  <command>
+    <listenFor>reviewMode_next</listenFor>
+<run command="msr_util" params="reviewMode_next"/>
+</command>
+  <command>
+    <listenFor>Show synthesiser</listenFor>
+<run command="msr_util" params="activateSynthesizerDialog"/>
+</command>
+  <command>
+    <listenFor>speak Status Line</listenFor>
+<run command="msr_util" params="reportStatusLine"/>
+</command>
+  <command>
+    <listenFor>cycle sleep mode</listenFor>
+<run command="msr_util" params="toggleCurrentAppSleepMode"/>
+</command>
+  <command>
+    <listenFor>"Show keyboard settings</listenFor>
+<run command="msr_util" params="activateKeyboardSettingsDialog"/>
+</command>
+  <command>
+    <listenFor>move focus to navigator</listenFor>
+<run command="msr_util" params="navigatorObject_moveFocus"/>
+</command>
+  <command>
+    <listenFor>Review next word</listenFor>
+<run command="msr_util" params="review_nextWord"/>
+</command>
+  <command>
+    <listenFor>reviewMode_next</listenFor>
+<run command="msr_util" params="reviewMode_next"/>
+</command>
+  <command>
+    <listenFor>Left click mouse</listenFor>
+<run command="msr_util" params="leftMouseClick"/>
+</command>
+  <command>
+    <listenFor>review_sayAll</listenFor>
+<run command="msr_util" params="review_sayAll"/>
+</command>
+  <command>
+    <listenFor>keep quiet</listenFor>
+<run command="msr_util" params="stopTalking"/>
+</command>
+
+
+<Signature>
+MIIDmgYJKoZIhvcNAQcCoIIDizCCA4cCAQExCzAJBgUrDgMCGgUAMGcGCisGAQQBgjcCAQSgWTBX
+MDIGCisGAQQBgjcCAR4wJAIBAQQQQf9itGlsy0O8AOWC49jANAIBAAIBAAIBAAIBAAIBADAhMAkG
+BSsOAwIaBQAEFFk2DU3R6mJz5SnJcyG83MyyGNbnoIIByzCCAccwggEwoAMCAQICEBAQeUFXDP60
+RaxcE/1U9e4wDQYJKoZIhvcNAQEFBQAwDzENMAsGA1UEAxMEdXNlcjAeFw0xNzAyMTExODAwMjla
+Fw0xODAyMTIwMDAwMjlaMA8xDTALBgNVBAMTBHVzZXIwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJ
+AoGBALil7O9sa1eD/UtOqtzhe+ypxdrcxLqNZttUYmbzTtQ0fHOLxZSw4VgzNF/KUBDuB6s7bian
+WSwZl81CJwgaJ3Ag3VUeJC3ny+fcroxBztV87oWLlBxqlnVjRiT9xIjAe3mtC3LHQDbCHUtnYcWY
+04lkUUmpD/44tMH121w+GYkhAgMBAAGjJDAiMAsGA1UdDwQEAwIHgDATBgNVHSUEDDAKBggrBgEF
+BQcDAzANBgkqhkiG9w0BAQUFAAOBgQCPqWnyLa5L6xiF+hedmnoviohNVTpWpn8CEMu4uUcItB93
+/LRdkcsBTNGSIpWP/ry0PluinGoRptnMTJrCwfw4fbytJqlEHTSighhL/njcsNt2maz2TdNuml+y
+gB4EhCSNHEie3CYg1Fu/m4Z82GfPeN4Hnd0Bj3e4UIBRR52uBDGCATswggE3AgEBMCMwDzENMAsG
+A1UEAxMEdXNlcgIQEBB5QVcM/rRFrFwT/VT17jAJBgUrDgMCGgUAoHAwEAYKKwYBBAGCNwIBDDEC
+MAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcC
+ARUwIwYJKoZIhvcNAQkEMRYEFC3P/91t3FIVaF3fsx1Zl8y8QJg6MA0GCSqGSIb3DQEBAQUABIGA
+hBTDU54NBVsdqWi5Z9cuu4AVj0BiZFDaucpIoJwN1tHUgiRE6MPfxHeEozSiufFc7+u5nr7fi0T7
+4vHk+8YHeFbTcjbxQmiir9wdDhS2Xzqg4kCNduIv3vZH6d5me+XvLQxg8GP9TZDm7b/vWflNbGwd
+gSTJGsgQs/4mjDQOwJs=
+</Signature>
+</speechMacros>

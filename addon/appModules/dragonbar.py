@@ -2,6 +2,7 @@ from appModuleHandler import AppModule
 import controlTypes
 import speech
 import re
+from comtypes import COMError
 
 class AppModule(AppModule):
 	lastFlashRightText = None
@@ -41,8 +42,12 @@ class AppModule(AppModule):
 		"Help",
 		])+")$")
 	def event_NVDAObject_init(self, obj):
-		automationId = obj.UIAElement.CachedAutomationID
+		try:
+			automationId = obj.UIAElement.CachedAutomationID
+		except (COMError, AttributeError):
+			return
 		if automationId == u'cbRecognitionMode':
+			#Fix a combobox with no label.
 			obj.name = obj.previous.name
 		if self.RE_BAD_MENU_ITEMS.match(automationId):
 			obj.role = controlTypes.ROLE_MENU

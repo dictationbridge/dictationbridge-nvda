@@ -1,32 +1,33 @@
+import os
+import subprocess
+import shutil
+import threading
+import time
 from ctypes import *
 from ctypes.wintypes import *
-import os
-import threading
-import subprocess
-from win32api import *
-from win32con import *
-import win32con
 
+import win32con
 import wx
-import gui
+from win32con import *
 
 import config
 import controlTypes
+import core
 import eventHandler
-import queueHandler
 import globalCommands
-from globalPluginHandler import GlobalPlugin as BaseGlobalPlugin
+import gui
 import inputCore
 import keyboardHandler
-from logHandler import log
-from NVDAObjects.IAccessible import getNVDAObjectFromEvent
-from NVDAObjects import NVDAObject
+import queueHandler
 import speech
-import time
 import windowUtils
 import winInputHook
 import winUser
-import core
+from globalPluginHandler import GlobalPlugin as BaseGlobalPlugin
+from logHandler import log
+from NVDAObjects import NVDAObject
+from NVDAObjects.IAccessible import getNVDAObjectFromEvent
+from win32api import *
 
 currentEntry = None
 autoFlushTimer = None
@@ -38,6 +39,12 @@ SPECIAL_COMMANDS = {
 	"stopTalking" : speech.cancelSpeech,
 	"toggleTalking" : speech.pauseSpeech,
 }
+
+def successDialog(program):
+	#Translators: Message shown if the commands were installed into dragon successfully.
+	gui.messageBox(_("The {0}  commands were successfully installed. Please restart your {0} profile to proceed. See the manual for details on how to do this.").format(program),
+	#Translators: Title of the successfully installed commands dialog
+	_("Success!"))
 
 def _onInstallDragonCommands():
 	si = subprocess.STARTUPINFO()
@@ -56,6 +63,8 @@ def _onInstallDragonCommands():
 	xml2dat = os.path.join(dragonDir, "mycmdsxml2dat.exe")
 	nsadmin = os.path.join(dragonDir, "nsadmin.exe")
 	addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+	#Translators: The official name of Dragon in your language, this probably should be left as Dragon.
+	thisProgram = _("Dragon")
 	if os.path.exists(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat")):
 			os.remove(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat"))
 	try:
@@ -69,10 +78,8 @@ def _onInstallDragonCommands():
 		d=config.execElevated(nsadmin,
 			["/commands", os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat"), "/overwrite=yes"],
 			wait=True, handleAlreadyElevated=True)
-		#Translators: Message shown if the commands were installed into dragon successfully.
-		gui.messageBox(_("The dragon commands were successfully installed. Please restart your dragon profile to proceed. See the manual for details on how to do this."),
-			#Translators: Title of the successfully installed commands dialog
-			_("Success!"))
+
+		successDialog(thisProgram)
 	except:
 		#Translators: Message shown if dragon commands failed to install.
 		gui.messageBox(_("There was an error while performing the addition of dragon commands into dragon. Are you running as an administrator? If so, please send the error in your log to the dictation bridge team as a bug report."),
@@ -82,6 +89,34 @@ def _onInstallDragonCommands():
 		if os.path.exists(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat")):
 			os.remove(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat"))
 
+def _onInstallMSRCommands():
+	MSRPATH = os.path.expanduser(r"~\documents\speech macros")
+	addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+	commandsFile = os.path.join(addonRootDir, "dictationBridge.WSRMac")
+	#Translators: Official Title of Microsoft speech Recognition in your language.
+	thisProgram = _("Microsoft Speech Recognition")
+	if os.path.exists(MSRPATH):
+		shutil.copy(commandsFile, MSRPATH)
+		successDialog(thisProgram)
+	else:
+		#Translators: The user doesn't have microsoft speech recognition profiles, or we can't find them.
+		gui.messageBox(_("Failed to locate your Microsoft Speech Macros folder. Please see the troublshooting part of the documentation for more details."),
+			#Translators: Title for the microsoft speech recognitioninstalation  error dialog.
+			_("Error installing MSR utilities"))
+
+
+def onInstallMSRCommands(evt):
+	dialog = gui.IndeterminateProgressDialog(gui.mainFrame,
+		#Translators: Title for a dialog shown when Microsoft speech recognition Commands are being installed!
+		_("Microsoft Speech Recognition Command Installation"),
+		#Translators: Message shown in the progress dialog for MSR command installation.
+		_("Please wait while microsoft speech recognition commands are installed."))
+	try:
+		gui.ExecAndPump(_onInstallMSRCommands)
+	except: #Catch all, because if this fails, bad bad bad.
+		log.error("DictationBridge commands failed to install!", exc_info=True)
+	finally:
+		dialog.done()
 
 def onInstallDragonCommands(evt):
 	#Translators: Warning about having custom commands already.
@@ -225,11 +260,11 @@ def patchKeyDownCallback():
 	winInputHook.keyDownCallback = callback
 
 masterDLL = None
-installDragonItem = None
+installMenu = None
+addonRootDir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 def initialize():
-	global masterDLL, installDragonItem
-	addonRootDir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+	global masterDLL, installMenu
 	dllPath = os.path.join(addonRootDir, "DictationBridgeMaster32.dll")
 	masterDLL = windll.LoadLibrary(dllPath)
 	masterDLL.DBMaster_SetTextInsertedCallback(cTextInsertedCallback)
@@ -240,9 +275,16 @@ def initialize():
 		raise WinError()
 	patchKeyDownCallback()
 	toolsMenu = gui.mainFrame.sysTrayIcon.toolsMenu
-	#Translators: The Install dragon Commands for NVDA tools menu label.
-	installDragonItem= toolsMenu.Append(wx.ID_ANY, _("Install Dragon Commands"))
+	installMenu = wx.Menu()
+	#Translators: The Install dragon Commands for NVDA  label.
+	installDragonItem= installMenu.Append(wx.ID_ANY, _("Install Dragon Commands"))
 	toolsMenu.Parent.Bind(wx.EVT_MENU, onInstallDragonCommands, installDragonItem)
+	#Translators: The Install Microsoft Speech Recognition Commands for NVDA  label.
+	installMSRItem= installMenu.Append(wx.ID_ANY, _("Install Microsoft Speech Recognition Commands"))
+	toolsMenu.Parent.Bind(wx.EVT_MENU, onInstallMSRCommands, installMSRItem)
+	#Translators: The Install commands submenu label.
+	toolsMenu.AppendSubMenu(installMenu, _("Install commands for Dictation Bridge"))
+
 
 
 def terminate():
@@ -251,7 +293,7 @@ def terminate():
 		masterDLL.DBMaster_Stop()
 		masterDLL = None
 	try:
-		gui.mainFrame.sysTrayIcon.toolsMenu.RemoveItem(installDragonItem)
+		gui.mainFrame.sysTrayIcon.toolsMenu.RemoveItem(toolsMenu)
 	except wx.PyDeadObjectError:
 		pass
 
