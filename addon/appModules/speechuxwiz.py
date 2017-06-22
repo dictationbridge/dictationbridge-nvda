@@ -7,7 +7,6 @@ import windowUtils
 from NVDAObjects.behaviors import Dialog
 from NVDAObjects.UIA import UIA
 import NVDAObjects
-import speech
 import winUser
 import time
 from logHandler import log
@@ -38,7 +37,7 @@ class AppModule(AppModule):
 				continue
 			if automationID == "txttrain":
 				api.setNavigatorObject(descendant)
-				speech.speakText(descendant.name)
+				ui.message(descendant.name)
 				break
 
 	def script_readTrainingText(self, gesture):

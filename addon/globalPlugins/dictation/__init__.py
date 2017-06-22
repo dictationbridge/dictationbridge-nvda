@@ -1,15 +1,16 @@
 import os
-import subprocess
 import shutil
+import subprocess
 import threading
 import time
 from ctypes import *
 from ctypes.wintypes import *
 
-import win32con
 import wx
 from win32con import *
 
+import api
+import braille
 import config
 import controlTypes
 import core
@@ -185,6 +186,7 @@ def flushCurrentEntry():
 			text = text[i + 1:]
 	if text != "":
 		speech.speakText(text)
+	braille.handler.handleCaretMove(api.getFocusObject())
 	currentEntry = None
 	requestWSRShowHideEvents()
 
