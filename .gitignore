@@ -15,3 +15,5 @@ addon/doc/en/
 *.exp
 *.obj
 .vscode
+*.xml
+*.WSRMac
