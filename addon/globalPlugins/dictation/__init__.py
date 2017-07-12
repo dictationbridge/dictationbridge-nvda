@@ -73,7 +73,6 @@ def _onInstallDragonCommands():
 			xml2dat,
 			os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat"),
 			os.path.join(addonRootDir, "dragon_dictationBridgeCommands.xml"),
-			"-v",
 			], startupinfo=si)
 		#Fixme: might need to get the users language, and put them there for non-english locales.
 		d=config.execElevated(nsadmin,
