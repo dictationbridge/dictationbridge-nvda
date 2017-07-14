@@ -223,6 +223,7 @@ cTextDeletedCallback = WINFUNCTYPE(None, HWND, LONG, c_wchar_p)(textDeleted)
 def execCommand(action):
 	"""take commands from speech-recognition and send them to NVDA
 	The function accepts script names to execute"""
+	import tones;tones.beep(10000,10)
 	count = 1
 	if "|" in action:
 		action,count = action.split()
