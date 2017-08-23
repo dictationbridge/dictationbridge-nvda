@@ -7,7 +7,7 @@ from ctypes import *
 from ctypes.wintypes import *
 
 import wx
-from win32con import *
+from  win32con import *
 
 import api
 import braille
@@ -156,7 +156,7 @@ def requestWSRShowHideEvents(fn=None):
 		pid, tid = winUser.getWindowThreadProcessID(hwnd)
 		eventHandler.requestEvents(eventName='show', processId=pid, windowClassName='#32770')
 		eventCallback = make_callback(fn)
-		hookId = winUser.setWinEventHook(win32con.EVENT_OBJECT_HIDE, win32con.EVENT_OBJECT_HIDE, 0, eventCallback, pid, 0, 0)
+		hookId = winUser.setWinEventHook(EVENT_OBJECT_HIDE, EVENT_OBJECT_HIDE, 0, eventCallback, pid, 0, 0)
 		requestedWSRShowHideEvents = True
 
 def make_callback(fn):
