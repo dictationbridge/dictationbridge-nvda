@@ -176,7 +176,7 @@ env.Default(addon)
 #Build and depend on the Dictationbridge core.
 dbCore = SConscript(['dictationbridge-core/SConstruct'])
 dbMSRUtil = SConscript(['MSRUtil/SConscript'])
-dbCoreFiles = dbCore[0]+dbCore[1]
+dbCoreFiles = dbCore[0]+dbCore[1]+dbCore[2]
 dbMSRUtilFiles = dbMSRUtil[0]
 env.Depends(addon, dbCoreFiles)
 env.Depends(addon, dbMSRUtilFiles)
