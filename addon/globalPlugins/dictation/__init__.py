@@ -224,8 +224,9 @@ def execCommand(action):
 	"""take commands from speech-recognition and send them to NVDA
 	The function accepts script names to execute"""
 	count = 1
+	print action
 	if "|" in action:
-		action,count = action.split()
+		action,count = action.split("|")
 	gesture = DictationGesture(action, count)
 	inputCore.manager.executeGesture(gesture)
 

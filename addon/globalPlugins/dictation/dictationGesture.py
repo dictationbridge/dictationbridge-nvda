@@ -1,3 +1,4 @@
+import time
 import functools
 import api
 import globalCommands
@@ -31,10 +32,8 @@ class DictationGesture(inputCore.InputGesture):
 			return func
 
 	def scriptWrapper(self, script, gesture):
-		for i in range(self._scriptCount):
-			scriptHandler.executeScript(script, gesture)
-
-
+		scriptHandler._lastScriptCount = gesture._scriptCount-1
+		script(gesture)
 
 	def _get_script_hacky(self):
 		#Workaround until DB 1.1 when I fix NVDA to not need repeated scripts.

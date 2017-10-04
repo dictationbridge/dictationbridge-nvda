@@ -4,8 +4,9 @@
 
 bool isValid(char c){
 	if(' ' == c) return false;
+	if('|' == c) return true;
 	if('_' == c) return true;
-	return isalpha((int)c);
+	return isalpha((int)c) || isdigit((int)c);
 }
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance,
