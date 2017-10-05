@@ -67,4 +67,9 @@ class DictationGesture(inputCore.InputGesture):
 			#Don't send it through the hack, because there's no useful help message for it.
 			return self.script_hacky
 		else:
-			return functools.partial(self.scriptWrapper, self.script_hacky)
+			script = self.script_hacky
+			if script is None:
+				return
+			wrappedScript = functools.partial(self.scriptWrapper, script)
+			wrappedScript.resumeSayAllMode = script.resumeSayAllMode
+			return wrappedScript
