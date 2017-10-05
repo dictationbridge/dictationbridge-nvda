@@ -71,5 +71,6 @@ class DictationGesture(inputCore.InputGesture):
 			if script is None:
 				return
 			wrappedScript = functools.partial(self.scriptWrapper, script)
-			wrappedScript.resumeSayAllMode = script.resumeSayAllMode
+			if getattr(script, "resumeSayAllMode", None) is not None:
+				wrappedScript.resumeSayAllMode = script.resumeSayAllMode
 			return wrappedScript
