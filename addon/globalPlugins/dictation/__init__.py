@@ -32,15 +32,21 @@ from win32api import *
 from dictationGesture import DictationGesture
 import inputCore
 
+addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 currentEntry = None
 autoFlushTimer = None
 requestedWSRShowHideEvents = False
 wsrAlternatesPanel = None
 wsrSpellingPanel = None
 wsrPanelHiddenFunction = None
+
+def dbHelp():
+	htmlPage = open()
+
 SPECIAL_COMMANDS = {
 	"stopTalking" : speech.cancelSpeech,
-	"toggleTalking" : speech.pauseSpeech,
+	"toggleTalking" : lambda:speech.pauseSpeech(speech.isPaused),
+	"dbHelp" : dbHelp,
 }
 
 def successDialog(program):
@@ -65,7 +71,7 @@ def _onInstallDragonCommands():
 		return
 	xml2dat = os.path.join(dragonDir, "mycmdsxml2dat.exe")
 	nsadmin = os.path.join(dragonDir, "nsadmin.exe")
-	addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+	
 	#Translators: The official name of Dragon in your language, this probably should be left as Dragon.
 	thisProgram = _("Dragon")
 	if os.path.exists(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat")):
@@ -93,7 +99,6 @@ def _onInstallDragonCommands():
 
 def _onInstallMSRCommands():
 	MSRPATH = os.path.expanduser(r"~\documents\speech macros")
-	addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 	commandsFile = os.path.join(addonRootDir, "dictationBridge.WSRMac")
 	#Translators: Official Title of Microsoft speech Recognition in your language.
 	thisProgram = _("Microsoft Speech Recognition")
@@ -253,7 +258,6 @@ def patchKeyDownCallback():
 
 masterDLL = None
 installMenu = None
-addonRootDir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 def initialize():
 	global masterDLL, installMenu
