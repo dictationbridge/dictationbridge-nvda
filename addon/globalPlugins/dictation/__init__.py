@@ -40,44 +40,68 @@ wsrAlternatesPanel = None
 wsrSpellingPanel = None
 wsrPanelHiddenFunction = None
 
+def escape(input):
+		input = input.replace("<","&lt;")
+		input = input.replace(">","&gt;")
+		input = input.replace('"',"&quot;")
+		return input
+
+class HelpCategory(object):
+	def __init__(self,categoryName):
+		self.categoryName = escape(categoryName)
+		self.rows = []
+
+	def addRow(self, command, help):
+		self.rows.append((escape(command), escape(help)))
+
+	def html(self):
+		html = "<h3>"+self.categoryName+"</h3>"
+		html += "<table><tr><th>"
+		#Translators: The name of the column header for what the user speaks to activate a command.
+		html += escape(_("Say This"))
+		html += "</th><th>"
+		#Translators: The name of a column header for the help text for what this speech will do.
+		html += escape(_("To Do This"))
+		html += "</th></tr>"
+		for row in self.rows:
+			html+="<tr><td>"+row[0]+"</td><td>"+row[1]+"</td></tr>"
+		html += "</table>"
+		return html
+
 def dbHelp():
 	sys.path.append(addonRootDir)
 	from NVDA_helpCommands import commands
 	sys.path.remove(sys.path[-1])
 	html = "<h2>"
 	#Translators: The Context sensative help heading, telling the user what these commands are..
-	html +=_("Currently available commands.")
+	html +=escape(_("Currently available commands."))
 	html += "</h2>"
-	html += "<table><tr><th>"
-	html += _("Command")
-	html += "</th><th>"
-	html += _("Help")
-	html += "</th></tr>"
-	def escape(input):
-		input = input.replace("<","&lt;")
-		input = input.replace(">","&gt;")
-		input = input.replace('"',"&quot;")
-		return input
-	tableDataItem = lambda item:"<td>" + escape(item) + "</td>"
-	def dataRow(text, help):
-		row =  "<tr>"
-		row+= tableDataItem(text)
-		row+= tableDataItem(help)
-		row += "</tr>"
-		return row
+	categories = {}
+	#Translators: The name of a category in Dictationbridge for the commands help.
+	miscName = _("Miscelaneous")
+	categories[miscName] = HelpCategory(miscName)
 	for command in commands:
 		#Not efficient, but helps remove a lot of not needed code bloat.
 		if command["identifier_for_NVDA"] in SPECIAL_COMMANDS:
-			html +=  dataRow(command["text"], command["helpText"])
+			#All special commands get the miscelaneous category.
+			categories[miscName].addRow(command["text"], command["helpText"])
 			continue
 		gesture = DictationGesture(command["identifier_for_NVDA"])
-		script = gesture.script_hacky
-		if not script:
+		scriptInfo = gesture.script_hacky
+		if not scriptInfo:
 			#This script is not active right now!
 			continue
-		doc = getattr(script, "__doc__", "")
-		html += dataRow(command["text"], doc)
-	html += "</table>"
+		doc = getattr(scriptInfo[0], "__doc__", "")
+		cat = ""
+		try:
+			cat = scriptInfo[0].category
+		except AttributeError:
+			cat = getattr(scriptInfo[1], "scriptCategory", miscName)
+		if not categories.get(cat):
+			categories[cat] = HelpCategory(cat)
+		categories[cat].addRow(command["text"], doc)
+	for category in categories.values():
+		html+=category.html()
 	ui.browseableMessage(html,
 		#Translators: The title of the context sensative help for Dictation Bridge NVDA Commands.
 		_("Dictation Bridge NVDA Context Sensative Help"),
