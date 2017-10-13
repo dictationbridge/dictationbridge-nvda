@@ -9,9 +9,13 @@ class DictationGesture(inputCore.InputGesture):
 	_internalID = ""
 	_scriptCount = 1
 
-	def __init__(self, internalID, count=1):
+
+	def __init__(self, action):
 		super(DictationGesture, self).__init__()
-		self._internalID = internalID
+		count = 1
+		if "|" in action:
+			action,count = action.split("|")
+		self._internalID = action
 		self._scriptCount = int(count)
 
 	def _get_identifiers(self):

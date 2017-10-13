@@ -1,17 +1,17 @@
 import os
+import sys
 import shutil
 import subprocess
 import threading
 import time
 from ctypes import *
 from ctypes.wintypes import *
-
 import wx
 from  win32con import *
-
 import api
 import braille
 import config
+import ui
 import controlTypes
 import core
 import eventHandler
@@ -41,7 +41,47 @@ wsrSpellingPanel = None
 wsrPanelHiddenFunction = None
 
 def dbHelp():
-	htmlPage = open()
+	sys.path.append(addonRootDir)
+	from NVDA_helpCommands import commands
+	sys.path.remove(sys.path[-1])
+	html = "<h2>"
+	#Translators: The Context sensative help heading, telling the user what these commands are..
+	html +=_("Currently available commands.")
+	html += "</h2>"
+	html += "<table><tr><th>"
+	html += _("Command")
+	html += "</th><th>"
+	html += _("Help")
+	html += "</th></tr>"
+	def escape(input):
+		input = input.replace("<","&lt;")
+		input = input.replace(">","&gt;")
+		input = input.replace('"',"&quot;")
+		return input
+	tableDataItem = lambda item:"<td>" + escape(item) + "</td>"
+	def dataRow(text, help):
+		row =  "<tr>"
+		row+= tableDataItem(text)
+		row+= tableDataItem(help)
+		row += "</tr>"
+		return row
+	for command in commands:
+		#Not efficient, but helps remove a lot of not needed code bloat.
+		if command["identifier_for_NVDA"] in SPECIAL_COMMANDS:
+			html +=  dataRow(command["text"], command["helpText"])
+			continue
+		gesture = DictationGesture(command["identifier_for_NVDA"])
+		script = gesture.script_hacky
+		if not script:
+			#This script is not active right now!
+			continue
+		doc = getattr(script, "__doc__", "")
+		html += dataRow(command["text"], doc)
+	html += "</table>"
+	ui.browseableMessage(html,
+		#Translators: The title of the context sensative help for Dictation Bridge NVDA Commands.
+		_("Dictation Bridge NVDA Context Sensative Help"),
+		True)
 
 SPECIAL_COMMANDS = {
 	"stopTalking" : speech.cancelSpeech,
@@ -225,21 +265,11 @@ def textDeleted(hwnd, start, text):
 	speech.speakText("deleted %s" % text)
 cTextDeletedCallback = WINFUNCTYPE(None, HWND, LONG, c_wchar_p)(textDeleted)
 
-def execCommand(action):
-	"""take commands from speech-recognition and send them to NVDA
-	The function accepts script names to execute"""
-	count = 1
-	print action
-	if "|" in action:
-		action,count = action.split("|")
-	gesture = DictationGesture(action, count)
-	inputCore.manager.executeGesture(gesture)
-
 def commandCallback(command):
 	if command in SPECIAL_COMMANDS:
 		queueHandler.queueFunction(queueHandler.eventQueue, SPECIAL_COMMANDS[command])
 		return
-	execCommand(command)
+	inputCore.manager.executeGesture(DictationGesture(command))
 cCommandCallback = WINFUNCTYPE(None, c_char_p)(commandCallback)
 
 def debugLogCallback(msg):
