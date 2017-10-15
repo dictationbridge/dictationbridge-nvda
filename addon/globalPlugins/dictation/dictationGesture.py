@@ -9,9 +9,13 @@ class DictationGesture(inputCore.InputGesture):
 	_internalID = ""
 	_scriptCount = 1
 
-	def __init__(self, internalID, count=1):
+
+	def __init__(self, action):
 		super(DictationGesture, self).__init__()
-		self._internalID = internalID
+		count = 1
+		if "|" in action:
+			action,count = action.split("|")
+		self._internalID = action
 		self._scriptCount = int(count)
 
 	def _get_identifiers(self):
@@ -46,31 +50,33 @@ class DictationGesture(inputCore.InputGesture):
 		if ti:
 			func = self._getScriptFromObject(ti)
 			if func and (not ti.passThrough or getattr(func,"ignoreTreeInterceptorPassThrough",False)):
-				return func
+				return (func, ti)
 
 		# NVDAObject level.
 		func = self._getScriptFromObject(focus)
 		if func:
-			return func
+			return (func, focus)
 		for obj in reversed(api.getFocusAncestors()):
 			func = self._getScriptFromObject(obj)
 			if func and getattr(func, 'canPropagate', False):
-				return func
+				return (func, obj)
 
 		# Global commands.
 		func = self._getScriptFromObject(globalCommands.commands)
 		if func:
-			return func
+			return (func, globalCommands.commands)
 
 	def _get_script(self):
 		if inputCore.manager.isInputHelpActive:
 			#Don't send it through the hack, because there's no useful help message for it.
-			return self.script_hacky
+			return self.script_hacky[0]
 		else:
 			script = self.script_hacky
 			if script is None:
 				return
-			wrappedScript = functools.partial(self.scriptWrapper, script)
-			if getattr(script, "resumeSayAllMode", None) is not None:
-				wrappedScript.resumeSayAllMode = script.resumeSayAllMode
+			wrappedScript = functools.partial(self.scriptWrapper, script[0])
+			try:
+				wrappedScript.resumeSayAllMode = script[0].resumeSayAllMode
+			except AttributeError:
+				pass
 			return wrappedScript

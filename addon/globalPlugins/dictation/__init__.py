@@ -1,17 +1,16 @@
 import os
+import sys
 import shutil
 import subprocess
 import threading
 import time
 from ctypes import *
 from ctypes.wintypes import *
-
 import wx
-from  win32con import *
-
 import api
 import braille
 import config
+import ui
 import controlTypes
 import core
 import eventHandler
@@ -32,15 +31,90 @@ from win32api import *
 from dictationGesture import DictationGesture
 import inputCore
 
+addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 currentEntry = None
 autoFlushTimer = None
 requestedWSRShowHideEvents = False
 wsrAlternatesPanel = None
 wsrSpellingPanel = None
 wsrPanelHiddenFunction = None
+
+def escape(input):
+		input = input.replace("<","&lt;")
+		input = input.replace(">","&gt;")
+		input = input.replace('"',"&quot;")
+		return input
+
+class HelpCategory(object):
+	def __init__(self,categoryName):
+		self.categoryName = escape(categoryName)
+		self.rows = []
+
+	def addRow(self, command, help):
+		self.rows.append((escape(command), escape(help)))
+
+	def html(self):
+		html = "<h3>"+self.categoryName+"</h3>"
+		html += "<table><tr><th>"
+		#Translators: The name of the column header for what the user speaks to activate a command.
+		html += escape(_("Say This"))
+		html += "</th><th>"
+		#Translators: The name of a column header for the help text for what this speech will do.
+		html += escape(_("To Do This"))
+		html += "</th></tr>"
+		for row in self.rows:
+			html+="<tr><td>"+row[0]+"</td><td>"+row[1]+"</td></tr>"
+		html += "</table>"
+		return html
+
+def dbHelp():
+	sys.path.append(addonRootDir)
+	from NVDA_helpCommands import commands
+	sys.path.remove(sys.path[-1])
+	html = "<p>"
+	#Translators: Description of how to use each table of the help documentation.
+	html += escape(_('To use this help documentation, you can navigate to the next category with h, or by saying "next heading".'))
+	html += escape(_('To move by column or row, use table navigation, (You can say "Previous row/column", "prev row", "prev column", "next row", "next column" to navigate with speech).'))
+	html += escape(_('to find specific text, say "find text", wait for the find dialog to appear, then dictate your text, then say "press enter" or "click ok".'))
+	html += "</p><h2>"
+	#Translators: The Context sensative help heading, telling the user what these commands are..
+	html +=escape(_("Currently available commands."))
+	html += "</h2>"
+	categories = {}
+	#Translators: The name of a category in Dictationbridge for the commands help.
+	miscName = _("Miscelaneous")
+	categories[miscName] = HelpCategory(miscName)
+	for command in commands:
+		#Not efficient, but helps remove a lot of not needed code bloat.
+		if command["identifier_for_NVDA"] in SPECIAL_COMMANDS:
+			#All special commands get the miscelaneous category.
+			categories[miscName].addRow(command["text"], command["helpText"])
+			continue
+		gesture = DictationGesture(command["identifier_for_NVDA"])
+		scriptInfo = gesture.script_hacky
+		if not scriptInfo:
+			#This script is not active right now!
+			continue
+		doc = getattr(scriptInfo[0], "__doc__", "")
+		cat = ""
+		try:
+			cat = scriptInfo[0].category
+		except AttributeError:
+			cat = getattr(scriptInfo[1], "scriptCategory", miscName)
+		if not categories.get(cat):
+			categories[cat] = HelpCategory(cat)
+		categories[cat].addRow(command["text"], doc)
+	for category in categories.values():
+		html+=category.html()
+	ui.browseableMessage(html,
+		#Translators: The title of the context sensative help for Dictation Bridge NVDA Commands.
+		_("Dictation Bridge NVDA Context Sensative Help"),
+		True)
+
 SPECIAL_COMMANDS = {
 	"stopTalking" : speech.cancelSpeech,
-	"toggleTalking" : speech.pauseSpeech,
+	"toggleTalking" : lambda:speech.pauseSpeech(not speech.isPaused),
+	"dbHelp" : dbHelp,
 }
 
 def successDialog(program):
@@ -65,7 +139,7 @@ def _onInstallDragonCommands():
 		return
 	xml2dat = os.path.join(dragonDir, "mycmdsxml2dat.exe")
 	nsadmin = os.path.join(dragonDir, "nsadmin.exe")
-	addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+	
 	#Translators: The official name of Dragon in your language, this probably should be left as Dragon.
 	thisProgram = _("Dragon")
 	if os.path.exists(os.path.join(addonRootDir, "dragon_dictationBridgeCommands.dat")):
@@ -93,7 +167,6 @@ def _onInstallDragonCommands():
 
 def _onInstallMSRCommands():
 	MSRPATH = os.path.expanduser(r"~\documents\speech macros")
-	addonRootDir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 	commandsFile = os.path.join(addonRootDir, "dictationBridge.WSRMac")
 	#Translators: Official Title of Microsoft speech Recognition in your language.
 	thisProgram = _("Microsoft Speech Recognition")
@@ -156,7 +229,7 @@ def requestWSRShowHideEvents(fn=None):
 		pid, tid = winUser.getWindowThreadProcessID(hwnd)
 		eventHandler.requestEvents(eventName='show', processId=pid, windowClassName='#32770')
 		eventCallback = make_callback(fn)
-		hookId = winUser.setWinEventHook(EVENT_OBJECT_HIDE, EVENT_OBJECT_HIDE, 0, eventCallback, pid, 0, 0)
+		hookId = winUser.setWinEventHook(winUser.EVENT_OBJECT_HIDE, winUser.EVENT_OBJECT_HIDE, 0, eventCallback, pid, 0, 0)
 		requestedWSRShowHideEvents = True
 
 def make_callback(fn):
@@ -220,21 +293,11 @@ def textDeleted(hwnd, start, text):
 	speech.speakText("deleted %s" % text)
 cTextDeletedCallback = WINFUNCTYPE(None, HWND, LONG, c_wchar_p)(textDeleted)
 
-def execCommand(action):
-	"""take commands from speech-recognition and send them to NVDA
-	The function accepts script names to execute"""
-	count = 1
-	print action
-	if "|" in action:
-		action,count = action.split("|")
-	gesture = DictationGesture(action, count)
-	inputCore.manager.executeGesture(gesture)
-
 def commandCallback(command):
 	if command in SPECIAL_COMMANDS:
 		queueHandler.queueFunction(queueHandler.eventQueue, SPECIAL_COMMANDS[command])
 		return
-	execCommand(command)
+	inputCore.manager.executeGesture(DictationGesture(command))
 cCommandCallback = WINFUNCTYPE(None, c_char_p)(commandCallback)
 
 def debugLogCallback(msg):
@@ -253,7 +316,6 @@ def patchKeyDownCallback():
 
 masterDLL = None
 installMenu = None
-addonRootDir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 def initialize():
 	global masterDLL, installMenu
@@ -277,18 +339,15 @@ def initialize():
 	#Translators: The Install commands submenu label.
 	toolsMenu.AppendSubMenu(installMenu, _("Install commands for Dictation Bridge"))
 
-
-
 def terminate():
 	global masterDLL
 	if masterDLL is not None:
 		masterDLL.DBMaster_Stop()
 		masterDLL = None
 	try:
-		gui.mainFrame.sysTrayIcon.toolsMenu.RemoveItem(toolsMenu)
+		gui.mainFrame.sysTrayIcon.toolsMenu.RemoveItem(installMenu)
 	except wx.PyDeadObjectError:
 		pass
-
 
 def getCleanedWSRAlternatesPanelItemName(obj):
 	return obj.name[2:] # strip symbol 2776 and space

@@ -68,7 +68,6 @@ def manifestGenerator(target, source, env, for_signature):
 	lambda target, source, env : "Generating manifest %s" % target[0])
 	return action
 
-
 def translatedManifestGenerator(target, source, env, for_signature):
 	dir = os.path.abspath(os.path.join(os.path.dirname(str(source[0])), ".."))
 	lang = os.path.basename(dir)
@@ -90,8 +89,6 @@ def createAddonHelp(dir):
 		readmePath = os.path.join(docsDir, "en", "readme.md")
 		readmeTarget = env.Command(readmePath, "readme.md", Copy("$TARGET", "$SOURCE"))
 		env.Depends(addon, readmeTarget)
-
-
 
 def createAddonBundleFromPath(path, dest):
 	""" Creates a bundle from a directory that contains an addon manifest file."""
