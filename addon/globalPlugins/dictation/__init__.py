@@ -315,10 +315,10 @@ def patchKeyDownCallback():
 	winInputHook.keyDownCallback = callback
 
 masterDLL = None
-installMenu = None
+installMenuItem = None
 
 def initialize():
-	global masterDLL, installMenu
+	global masterDLL, installMenuItem
 	dllPath = os.path.join(addonRootDir, "DictationBridgeMaster32.dll")
 	masterDLL = windll.LoadLibrary(dllPath)
 	masterDLL.DBMaster_SetTextInsertedCallback(cTextInsertedCallback)
@@ -337,7 +337,7 @@ def initialize():
 	installMSRItem= installMenu.Append(wx.ID_ANY, _("Install Microsoft Speech Recognition Commands"))
 	toolsMenu.Parent.Bind(wx.EVT_MENU, onInstallMSRCommands, installMSRItem)
 	#Translators: The Install commands submenu label.
-	toolsMenu.AppendSubMenu(installMenu, _("Install commands for Dictation Bridge"))
+	installMenuItem=toolsMenu.AppendSubMenu(installMenu, _("Install commands for Dictation Bridge"))
 
 def terminate():
 	global masterDLL
@@ -345,7 +345,7 @@ def terminate():
 		masterDLL.DBMaster_Stop()
 		masterDLL = None
 	try:
-		gui.mainFrame.sysTrayIcon.toolsMenu.RemoveItem(installMenu)
+		gui.mainFrame.sysTrayIcon.toolsMenu.Remove(gui.mainFrame.sysTrayIcon.toolsMenu.MenuItems.index(installMenuItem))
 	except wx.PyDeadObjectError:
 		pass
 
