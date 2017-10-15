@@ -63,7 +63,7 @@ class HelpCategory(object):
 		html += escape(_("To Do This"))
 		html += "</th></tr>"
 		for row in self.rows:
-			html+="<tr><td>"+row[0]+"</td><td>"+row[1]+"</td></tr>"
+			html+="<tr><th>"+row[0]+"</th><td>"+row[1]+"</td></tr>"
 		html += "</table>"
 		return html
 
