@@ -7,7 +7,6 @@ import time
 from ctypes import *
 from ctypes.wintypes import *
 import wx
-from  win32con import *
 import api
 import braille
 import config
@@ -72,7 +71,12 @@ def dbHelp():
 	sys.path.append(addonRootDir)
 	from NVDA_helpCommands import commands
 	sys.path.remove(sys.path[-1])
-	html = "<h2>"
+	html = "<p>"
+	#Translators: Description of how to use each table of the help documentation.
+	html += escape(_('To use this help documentation, you can navigate to the next category with h, or by saying "next heading".'))
+	html += escape(_('To move by column or row, use table navigation, (You can say "Previous row/column", "prev row", "prev column", "next row", "next column" to navigate with speech).'))
+	html += escape(_('to find specific text, say "find text", wait for the find dialog to appear, then dictate your text, then say "press enter" or "click ok".'))
+	html += "</p><h2>"
 	#Translators: The Context sensative help heading, telling the user what these commands are..
 	html +=escape(_("Currently available commands."))
 	html += "</h2>"
@@ -109,7 +113,7 @@ def dbHelp():
 
 SPECIAL_COMMANDS = {
 	"stopTalking" : speech.cancelSpeech,
-	"toggleTalking" : lambda:speech.pauseSpeech(speech.isPaused),
+	"toggleTalking" : lambda:speech.pauseSpeech(not speech.isPaused),
 	"dbHelp" : dbHelp,
 }
 
@@ -225,7 +229,7 @@ def requestWSRShowHideEvents(fn=None):
 		pid, tid = winUser.getWindowThreadProcessID(hwnd)
 		eventHandler.requestEvents(eventName='show', processId=pid, windowClassName='#32770')
 		eventCallback = make_callback(fn)
-		hookId = winUser.setWinEventHook(EVENT_OBJECT_HIDE, EVENT_OBJECT_HIDE, 0, eventCallback, pid, 0, 0)
+		hookId = winUser.setWinEventHook(winUser.EVENT_OBJECT_HIDE, winUser.EVENT_OBJECT_HIDE, 0, eventCallback, pid, 0, 0)
 		requestedWSRShowHideEvents = True
 
 def make_callback(fn):
@@ -335,18 +339,15 @@ def initialize():
 	#Translators: The Install commands submenu label.
 	toolsMenu.AppendSubMenu(installMenu, _("Install commands for Dictation Bridge"))
 
-
-
 def terminate():
 	global masterDLL
 	if masterDLL is not None:
 		masterDLL.DBMaster_Stop()
 		masterDLL = None
 	try:
-		gui.mainFrame.sysTrayIcon.toolsMenu.RemoveItem(toolsMenu)
+		gui.mainFrame.sysTrayIcon.toolsMenu.RemoveItem(installMenu)
 	except wx.PyDeadObjectError:
 		pass
-
 
 def getCleanedWSRAlternatesPanelItemName(obj):
 	return obj.name[2:] # strip symbol 2776 and space

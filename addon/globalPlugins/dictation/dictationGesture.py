@@ -71,10 +71,10 @@ class DictationGesture(inputCore.InputGesture):
 			#Don't send it through the hack, because there's no useful help message for it.
 			return self.script_hacky[0]
 		else:
-			script = self.script_hacky[0]
+			script = self.script_hacky
 			if script is None:
 				return
-			wrappedScript = functools.partial(self.scriptWrapper, script)
+			wrappedScript = functools.partial(self.scriptWrapper, script[0])
 			try:
 				wrappedScript.resumeSayAllMode = script.resumeSayAllMode
 			except AttributeError:
