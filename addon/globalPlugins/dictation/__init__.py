@@ -77,7 +77,7 @@ def dbHelp():
 	html += escape(_('To move by column or row, use table navigation, (You can say "Previous row/column", "prev row", "prev column", "next row", "next column" to navigate with speech).'))
 	html += escape(_('to find specific text, say "find text", wait for the find dialog to appear, then dictate your text, then say "press enter" or "click ok".'))
 	html += "</p><h2>"
-	#Translators: The Context sensative help heading, telling the user what these commands are..
+	#Translators: The Context sensitive help heading, telling the user what these commands are..
 	html +=escape(_("Currently available commands."))
 	html += "</h2>"
 	categories = {}
@@ -107,8 +107,8 @@ def dbHelp():
 	for category in categories.values():
 		html+=category.html()
 	ui.browseableMessage(html,
-		#Translators: The title of the context sensative help for Dictation Bridge NVDA Commands.
-		_("Dictation Bridge NVDA Context Sensative Help"),
+		#Translators: The title of the context sensitive help for Dictation Bridge NVDA Commands.
+		_("Dictation Bridge NVDA Context Sensitive Help"),
 		True)
 
 SPECIAL_COMMANDS = {
@@ -319,6 +319,15 @@ installMenuItem = None
 
 def initialize():
 	global masterDLL, installMenuItem
+	path = os.path.join(config.getUserDefaultConfigPath(), ".dbInstall")
+	if os.path.exists(path):
+		#First time reinstall of old code without the bail if updating code. Remove the temp file.
+		#Also, import install tasks, then fake an install to get around the original path bug.
+		sys.path.append(addonRootDir)
+		import installTasks
+		installTasks.onInstall(postPathBug = True)
+		sys.path.remove(sys.path[-1])
+		os.remove(path)
 	dllPath = os.path.join(addonRootDir, "DictationBridgeMaster32.dll")
 	masterDLL = windll.LoadLibrary(dllPath)
 	masterDLL.DBMaster_SetTextInsertedCallback(cTextInsertedCallback)
