@@ -33,17 +33,13 @@ import os.path
 
 # Define the python files that are the sources of your add-on.
 # You can use glob expressions here, they will be expanded.
-pythonTranslatableSources = []
 pythonSources = []
 for dirpath, dirnames, filenames in os.walk("addon"):
 	for fi in filenames:
 		if fi.endswith(".py"):
-			pythonTranslatableSources.append(os.path.join(dirpath, fi))
-		elif fi.endswith(".xml"):
 			pythonSources.append(os.path.join(dirpath, fi))
-pythonSources.extend(pythonTranslatableSources)
 # Files that contain strings for translation. Usually your python sources
-i18nSources = pythonTranslatableSources + ["buildVars.py"]
+i18nSources = pythonSources + ["buildVars.py"]
 
 # Files that will be ignored when building the nvda-addon file
 # Paths are relative to the addon directory, not to the root directory of your addon sources.
