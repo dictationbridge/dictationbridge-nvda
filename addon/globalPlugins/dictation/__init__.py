@@ -43,6 +43,7 @@ def escape(input):
 		input = input.replace("<","&lt;")
 		input = input.replace(">","&gt;")
 		input = input.replace('"',"&quot;")
+		input = input.replace("'","&apos;")
 		return input
 
 class HelpCategory(object):
@@ -69,12 +70,15 @@ class HelpCategory(object):
 
 def dbHelp():
 	sys.path.append(addonRootDir)
+	#Import this late, as we only need this here and it's a large autobuilt blob.
 	from NVDA_helpCommands import commands
 	sys.path.remove(sys.path[-1])
 	html = "<p>"
-	#Translators: Description of how to use each table of the help documentation.
+	#Translators: Description of how to Move to the next topic in the in-built help.
 	html += escape(_('To use this help documentation, you can navigate to the next category with h, or by saying "next heading".'))
+	#Translators: Description of how to Move  through help tables in the in-built help.
 	html += escape(_('To move by column or row, use table navigation, (You can say "Previous row/column", "prev row", "prev column", "next row", "next column" to navigate with speech).'))
+	#Translators: Description of how to  find a command  in the in-built help.
 	html += escape(_('to find specific text, say "find text", wait for the find dialog to appear, then dictate your text, then say "press enter" or "click ok".'))
 	html += "</p><h2>"
 	#Translators: The Context sensitive help heading, telling the user what these commands are..
@@ -82,26 +86,26 @@ def dbHelp():
 	html += "</h2>"
 	categories = {}
 	#Translators: The name of a category in Dictationbridge for the commands help.
-	miscName = _("Miscelaneous")
+	miscName = _("Miscellaneous")
 	categories[miscName] = HelpCategory(miscName)
 	for command in commands:
-		#Not efficient, but helps remove a lot of not needed code bloat.
 		if command["identifier_for_NVDA"] in SPECIAL_COMMANDS:
 			#All special commands get the miscelaneous category.
 			categories[miscName].addRow(command["text"], command["helpText"])
 			continue
+		#Creating a gesture is not efficient, but helps eliminate code bloat.
 		gesture = DictationGesture(command["identifier_for_NVDA"])
 		scriptInfo = gesture.script_hacky
 		if not scriptInfo:
 			#This script is not active right now!
 			continue
 		doc = getattr(scriptInfo[0], "__doc__", "")
-		cat = ""
+		category = ""
 		try:
-			cat = scriptInfo[0].category
+			category = scriptInfo[0].category
 		except AttributeError:
-			cat = getattr(scriptInfo[1], "scriptCategory", miscName)
-		if not categories.get(cat):
+			category = getattr(scriptInfo[1], "scriptCategory", miscName)
+		if not categories.get(category):
 			categories[cat] = HelpCategory(cat)
 		categories[cat].addRow(command["text"], doc)
 	for category in categories.values():
@@ -253,10 +257,12 @@ def flushCurrentEntry():
 		if i > 0:
 			speech.speakText(text[:i])
 		if text[i:i + 2] == "\n\n":
-			speech.speakText("new paragraph")
+			# Translators: The text which is spoken when a new paragraph is added.
+			speech.speakText(_("new paragraph"))
 			text = text[i + 2:]
 		else:
-			speech.speakText("new line")
+			# Translators: The message spoken when a new line is entered.
+			speech.speakText(_("new line"))
 			text = text[i + 1:]
 	if text != "":
 		speech.speakText(text)
@@ -290,7 +296,8 @@ def textInserted(hwnd, start, text):
 cTextInsertedCallback = WINFUNCTYPE(None, HWND, LONG, c_wchar_p)(textInserted)
 
 def textDeleted(hwnd, start, text):
-	speech.speakText("deleted %s" % text)
+	# Translators: The message spoken when a piece of text is deleted.
+	speech.speakText(_("deleted %s" % text))
 cTextDeletedCallback = WINFUNCTYPE(None, HWND, LONG, c_wchar_p)(textDeleted)
 
 def commandCallback(command):
@@ -466,7 +473,8 @@ class WSRSpellingPanel(NVDAObject):
 				speech.speakText(newWord)
 				speech.speakSpelling(newWord)
 			elif oldWord:
-				speech.speakText("cleared")
+				# Translators: The text which is spoken when the spelling dialog is cleared.
+				speech.speakText(_("cleared"))
 		self.schedulePoll()
 
 	def cancelPoll(self):
@@ -514,6 +522,9 @@ class GlobalPlugin(BaseGlobalPlugin):
 
 	def event_show(self, obj, nextHandler):
 		global wsrAlternatesPanel, wsrSpellingPanel
+		#Phrases which need translated in this function:
+		# Translators: The text for "or say," Which is telling the user that they can say the next phrase.
+		orSay = _("Or say")
 		if isinstance(obj, WSRAlternatesPanel):
 			wsrAlternatesPanel = obj
 			speech.cancelSpeech()
@@ -524,7 +535,7 @@ class GlobalPlugin(BaseGlobalPlugin):
 				if descendant.role == controlTypes.ROLE_STATICTEXT:
 					speech.speakText(descendant.name)
 				elif descendant.role == controlTypes.ROLE_LINK:
-					speech.speakText("Or say")
+					speech.speakText(orSay)
 					speech.speakText(descendant.name)
 				elif descendant.role == controlTypes.ROLE_LISTITEM:
 					speech.speakText(str(descendant.positionInfo["indexInGroup"]))
@@ -543,7 +554,7 @@ class GlobalPlugin(BaseGlobalPlugin):
 				if descendant.role == controlTypes.ROLE_STATICTEXT:
 					speech.speakText(descendant.name)
 				elif descendant.role == controlTypes.ROLE_LINK:
-					speech.speakText("Or say")
+					speech.speakText(orSay)
 					speech.speakText(descendant.name)
 			return
 		nextHandler()
