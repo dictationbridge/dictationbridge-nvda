@@ -362,7 +362,7 @@ def terminate():
 		masterDLL = None
 	try:
 		gui.mainFrame.sysTrayIcon.toolsMenu.Remove(gui.mainFrame.sysTrayIcon.toolsMenu.MenuItems.index(installMenuItem))
-	except wx.PyDeadObjectError:
+	except:
 		pass
 
 def getCleanedWSRAlternatesPanelItemName(obj):
